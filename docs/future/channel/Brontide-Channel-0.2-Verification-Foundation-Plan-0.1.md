@@ -203,7 +203,7 @@ second copy drift. Section 4's count of executable properties is checked against
 executes, so the measure cannot go stale in the direction that flatters the work.
 
 **All fifteen properties condition 2 names now execute.** `C4-P1`, `C4-P2`, `S1`-`S6` and `I1`-`I7`
-run in the gate on every commit: **76** evaluations over **36** declared inputs, plus the nine operand
+run in the gate on every commit: **81** evaluations over **38** declared inputs, plus the nine operand
 mutations. Each has at least one named mutation it goes red on and a required-green set it stays green
 on, and a property green on every input fails the gate as a finding against the property.
 
@@ -238,7 +238,7 @@ Both were probed.
 
 **All twenty-six properties now execute, and no cell in either audit table reads `owed`.** The eleven
 per-capability properties outside condition 2 -- `C1-P1`, `C2-P1`, `C3-P1`, `C5-P1` through `C12-P1`
--- were the last of them. The gate runs **139** evaluations over **61** declared inputs plus the nine operand
+-- were the last of them. The gate runs **145** evaluations over **63** declared inputs plus the nine operand
 mutations, and each property is red on the mutation the completeness review already named for it and
 green on both required-green members.
 
@@ -2519,13 +2519,13 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   nothing, and cutting the return-channel census from about a hundred syntax-tree walks per gate to one
   moved it from 530 traced seconds to 318 — real, but a fifth of what the walk count suggested, because
   what costs is executed statements and not walks; and
-- **guard probes executable** — currently **158 of 158**, run by
+- **guard probes executable** — currently **171 of 171**, run by
   `build/verify-channel-0.2-guards.ps1` under `build/verify-gate-self-checks.ps1` and recomputed by it.
   It ran on every push until **AT7**; it now runs on the schedule and on request, which is a weaker
   place for a measure to live and is the cost that decision accepted. This measure did
   not exist before **AO3**, and what it is for is the claim "the guards fire", which three passes
   asserted in prose while four of the probes behind it had quietly stopped applying; and
-- **design-verifier lines** — **3,010** now, recomputed by the verifier against itself. Every step
+- **design-verifier lines** — **3,134** now, recomputed by the verifier against itself. Every step
   of this work, each figure recomputed from the repository rather than stated: `6c7715a` **2,322** when
   the work began, `365bbc0` **2,377**, `2684ec7` **2,257**, `72fecde` **2,263**, `46b7c85` **2,247**,
   `0f7858c` **2,356**, `6a6c76d` **2,441**, `c5fe9ee` **2,491**, `138af11` **2,626** — counted the way this verifier counts
@@ -2558,7 +2558,13 @@ Recorded so the next decision is made on evidence rather than on how the cycle f
   naming the next pass the twenty-first for three passes. It rose by eighteen for BK, all of it the
   second form that check gained for the outcome that makes "the next pass" false -- a pass that meets
   condition 4 -- pinned to the latest retained pass so that it fails if another pass is run, four of
-  them the correction BK1 made when the coverage measure refused the form's first draft.
+  them the correction BK1 made when the coverage measure refused the form's first draft. It rose by
+  a hundred and twenty-four for BL, all of it checks that pin closure review 17's corrections where a
+  property cannot: the endpoint required of every session-machine property and `C2-P1`, the crossing
+  drain and session-control order on each artifact that states them, the accepted acknowledgement,
+  the initiator's unopened identity and the frameless refusal, every status block read against the
+  declared closure-cycle state, the retained review counts recomputed rather than matched, and the
+  operand enumeration's `session state` row.
 
 ## 5. Open questions for the owner
 

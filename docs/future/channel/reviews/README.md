@@ -170,6 +170,7 @@ dependency instead of narrowing it.
 | AJ | closure-review | design | closure review 14 attestation |
 | AK | closure-review | design | closure review 15 attestation (AK1-AK4); AK5-AK8 raised by the AK correction pass and recorded in the completeness review's operand enumeration |
 | AL | closure-review | design | closure review 16 attestation |
+| BL | closure-review | design | closure review 17 attestation |
 | AM | iteration | verification | W1-W3 verification-foundation iteration review |
 | AN | iteration | verification | second W1-W3 verification-foundation iteration review |
 | AO | iteration | verification | third W1-W3 verification-foundation iteration review |
@@ -1087,11 +1088,32 @@ artifact reads it; a reviewer checking what a finding *was* reads the attestatio
   in any member of its property's group — a recorded non-finding rather than a raised one, on the
   ground that over-precision in an operand is not a defect. Its dispatch is disclosed below.
 
-The current review target is the commit titled `docs(channel): lift the closure-review hold by owner
-ruling of 2026-09-24`, committed 2026-09-24, which is the head of the correction sequence beginning at
-`fix(channel): make C4-P2 falsifiable`. It moves the pin off `verification: give I5 the two
-terminal-operand mutations its inputs never exercised (BI1)` because lifting the hold reaches a design
-artifact -- the redesign plan's status line, which named the hold as what the closure re-review was
+- [Closure review 17](./channel-0.2-design-foundation-closure-review-17-attestation.md) — reviewed
+  `366bcd0f1d9ad34c36a035bba785089a52be5e9b`, whose design artifacts hash identically to the pinned
+  target; `does-not-conform`; blocking **BL1**, **BL2** and **BL3** with nonblocking **BL4**-**BL12**.
+  It is the first closure review after the hold of 2026-08-17 to 2026-09-24. **Its isolation is
+  complete**, with one disclosure it makes itself: its session began with this repository's
+  `AGENTS.md` and the titles of the dispatching session's memory entries in context, and it read no
+  memory entry and ran nothing against the author's working repository. Its `C4-P2` evaluator,
+  written to differ from the gate's in three mechanisms, agrees with all eleven declared verdicts, so
+  the property is sound at that pin, and none of its blocking findings is against it. All three are
+  against the **session** machine and come from one question: what happens when the two endpoints of
+  one session each run that machine legally at different instants. **BL1** is two endpoints that each
+  legally begin drain faulting the session; **BL2** is a session control overtaking the same
+  endpoint's earlier interaction frame, which C4's order does not cover; **BL3** is `S2`, `S3`, `S4`
+  and `C2-P1` scoped per session while the machine runs per endpoint, red in the repository's own
+  evaluator on a conforming one-session vector recording both endpoints. **BL6** is in the commit
+  that lifted the hold and **BL11** in the twenty-fourth and twenty-fifth passes' generator, both work
+  of the session that dispatched it. Its dispatch is disclosed below.
+
+The current review target is the commit titled `docs(channel): disposition the BL family in the
+completeness review and the indexes`, committed 2026-09-25, which is the head of the correction sequence
+beginning at `fix(channel): make C4-P2 falsifiable`. It moves the pin off `docs(channel): lift the
+closure-review hold by owner ruling of 2026-09-24` because the BL corrections reach every design
+artifact -- closure review 17's twelve findings, four of them under owner rulings of 2026-09-25 -- and
+that commit is the last of the correction to touch one. Before that the pin sat on the commit that
+lifted the hold, which moved it off `verification: give I5 the two terminal-operand mutations its
+inputs never exercised (BI1)` because lifting the hold reaches a design artifact -- the redesign plan's status line, which named the hold as what the closure re-review was
 waiting under -- and no design fact changes with it. Before that the pin sat on the twenty-third pass's
 commit, which moved it off `verification: count the twentieth pass's first-run fields as stated 285
 times rather than on 148 records` because that pass's **BI1** correction reaches a design artifact -- the
@@ -1693,4 +1715,37 @@ by a party that had formed no view of the design before doing so.
 
 The independence requirement on the next cycle is unchanged and now stricter by one name: its reviewer
 must differ from all sixteen retained reviewers, from every correction author, and from this
+dispatching session.
+
+## Disclosed dispatch provenance of closure review 17
+
+Closure review 17 was dispatched by the session that authored part of the work it reviewed: the
+twenty-fifth condition-4 pass and its instrument, the design-gate change in that pass, the **BK1**
+correction, and the commit that lifted the hold and moved the review pin -- the pinned commit itself.
+It also dispatched the review from the same conversation in which it recorded the owner's ruling that
+lifted the hold. That is the relationship reviews 10 through 15 disclosed, after review 16's dispatcher
+with no involvement at all, and it is disclosed here for that reason.
+
+Before dispatching, that session made the clone from the public remote rather than from its own
+working repository, verified in it that the design gate passes and that every Channel design artifact
+hashes identically at the reviewed commit and the pinned one, and told the reviewer to re-verify the
+pin rather than accept that. Its brief pointed the reviewer at `AGENTS.md` and this policy for scope,
+verdicts and output, named no artifact defect and no area of suspicion, told the reviewer that its
+dispatcher authored part of the work and to treat that as a reason to probe harder, and gave five
+instructions each restating a standing requirement: verify the pin, falsify rather than read,
+re-derive retained findings from their evidence, follow propagation, and review the architecture the
+status registry selects. It also told the reviewer to run the self-modifying gate scripts only in a
+throwaway clone. The reviewer's run was interrupted once by a usage limit and resumed in the same
+context with a message saying only that, and that its unchanged brief stood.
+
+The reviewer's own account of what the brief narrowed is in its attestation. What the arrangement is
+worth is the evidence reviews 10 through 15 offered: two of its findings sit in the dispatcher's own
+work -- **BL6**, stale hold statements the lifting commit left in eight design status blocks, and
+**BL11**, the generator of the twenty-fourth and twenty-fifth passes keeping an interaction
+nonterminal after a rejected terminal fact where the interaction machine routes that case to `lost` --
+and the dispatcher, which had every opportunity to find both, did not. That is evidence the
+arrangement did not soften the review; it is not proof.
+
+The independence requirement on the next cycle is unchanged and now stricter by one name: its reviewer
+must differ from all seventeen retained reviewers, from every correction author, and from this
 dispatching session.

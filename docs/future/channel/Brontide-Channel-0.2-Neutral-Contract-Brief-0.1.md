@@ -3,7 +3,7 @@
 Date: 2026-08-11
 
 Status: proposed first-batch artifact boundary; awaiting a fresh independent
-closure re-review, on hold under the owner decision of 2026-08-17 recorded in the
+closure re-review, released on 2026-09-24 from the owner hold recorded in the
 [verification foundation plan](./Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md).
 Correction history is not carried here; it is owned by the
 [disposition index](./reviews/channel-0.2-disposition-index.md#neutral-contract-and-vector-brief).
@@ -125,7 +125,11 @@ declaration the artifact crossing the boundary from the realization, and C4's ev
 profile to check it at establishment — so `established-profile.json` gives it a normative position and
 a realization that does not declare it refuses establishment exactly as an unknown required facet
 does. It is a realization fact, not an extension facet: a profile with no facets at all still has it,
-because core promises the ordering rather than a `delivery-facet` supplying it.
+because core promises the ordering rather than a `delivery-facet` supplying it. The image carries the
+realization's **session-control order** declaration beside it, for the same reasons: C4 promises that
+no frame an endpoint committed before a drain or close is delivered after that control, the
+responsibility matrix owns that under `channel`, and a realization that does not declare it refuses
+establishment. That declaration is **BL2**.
 
 Unknown required facets or any version mismatch refuse before interaction dispatch. Optional facets
 may be absent only when their declaration states that absence changes no core identity, authority,
@@ -228,7 +232,10 @@ Every vector contains:
   inside the correction written to close AG2. It also
   keeps the sequence honest about what it is — a record of what each side committed, not a global
   order, which Channel does not have;
-- expected accepted/refused transitions;
+- expected accepted/refused transitions, each naming the **endpoint** whose local history of the
+  session it belongs to, as every admission and dispatch does. The session machine runs once per
+  local endpoint, and a transition naming only its session merges the two endpoints' histories into
+  one, which **BL3** found the executable timeline doing;
 - expected frame decision and peer/local provenance;
 - expected terminal history and effect certainty;
 - expected sibling-interaction effects for concurrency vectors;

@@ -43,13 +43,15 @@ check could not read because both halves of it key on the reference's name and t
 changed, its edit reaching some of the six artifacts that publish it — and the only instrument here
 that finds a real defect is a person reading prose. The
 [verification foundation plan](./Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md) records the
-diagnosis, the work that lands before the cycle resumes, and the conditions that end the hold. Three
-of its four conditions are met; the fourth asks for an author-side pass over that work which finds
-nothing it can fix; the thirteenth is the only one to find nothing, and the twelve before it and the nine after it raised **AM1**-**AM5**, **AN1**-**AN6**,
+diagnosis, the work that landed before the cycle resumed, and the conditions that ended the hold. All
+four were met; the fourth asked for an author-side pass over that work which finds nothing it can
+fix, twice running, and the twenty-fourth and twenty-fifth were those two. Of the twenty-five passes,
+the thirteenth, the twenty-fourth and the twenty-fifth found nothing in the package, and the others
+raised **AM1**-**AM5**, **AN1**-**AN6**,
 **AO1**-**AO3**, **AP1**-**AP2**, **AQ1**-**AQ5**, **AR1**, **AS1**-**AS7**, **AT1**-**AT7**,
 **AU1**-**AU5**, **AV1**-**AV3**, **AW1**, **AX1**-**AX3**, **AZ1**-**AZ2**, **AZ4**, **BA1**-**BA7**,
 **BB1**-**BB7**, **BC1**-**BC3**, **BD1**-**BD3**, **BE1**-**BE5**, **BF1**-**BF12**, **BG1**-**BG2** and
-**BH1**-**BH5** and **BI1**-**BI3** -- BF the
+**BH1**-**BH5**, **BI1**-**BI3** and **BK1**, the last in the twenty-fifth pass's own new code -- BF the
 first family since AU to reach a design artifact, giving C10-P1 and I4 a mutation each for a field the
 property corpus stated and nothing read, BG the first whose frozen set and new instrument both
 reported nothing while its two findings came from reading, BH the first to ask whether the value a
@@ -65,10 +67,22 @@ the AC pass denying evidence that existed. Every recorded finding being closed i
 on a conforming fresh independent closure re-review, which is the only judgement that can close the
 batch.
 
+The seventeenth closure review, the first after the owner lifted the hold on 2026-09-24, returned
+`does-not-conform` with blocking **BL1**-**BL3** and nonblocking **BL4**-**BL12**. Its `C4-P2`
+evaluator agrees with all eleven declared verdicts, and all three blocking findings are against the
+session machine, from the two endpoints of one session each running it at different instants:
+**BL1** is two endpoints that each legally begin drain
+faulting the session, **BL2** a session control overtaking the same endpoint's earlier interaction
+frame, which C4's order does not cover, and **BL3** `S2`, `S3`, `S4` and `C2-P1` scoped per session
+while the machine runs per endpoint. The attestation is retained unmodified, and all twelve are
+corrected, four under owner rulings of 2026-09-25 -- drain counted per endpoint, session controls as
+ordering barriers, the initiator's unopened identity mirroring the recipient's, and `C4-P2` reading
+every settled latch.
+
 ## Channel 0.2 design foundation
 
 Every artifact below awaits the same cycle: one fresh independent closure re-review, now of the
-correction sequence that runs from S1 through **BI3**. That range is stated here rather than in the
+correction sequence that runs from S1 through **BL12**. That range is stated here rather than in the
 Design reviews row alone because AE4 corrected the row and left this sentence naming a sequence five
 families stale, and AF2 was that omission — a count is not the only thing in an index that goes
 stale. R1 was a disagreement between C8 and the recipient state/event grid about a cancellation
@@ -102,7 +116,7 @@ operand at once instead of one at a time. See the
 | [Contract-completeness review](./Brontide-Channel-0.2-Contract-Completeness-Review-0.1.md) | Separate review of silence and extension pressure | See the [disposition index](./reviews/channel-0.2-disposition-index.md#contract-completeness-review). |
 | [0.1-to-0.2 migration ledger](./Brontide-Channel-0.1-to-0.2-Migration-Ledger-0.1.md) | Disposition of predecessor Shapes, fields, states, categories, limits, observations, vectors, and goldens | See the [disposition index](./reviews/channel-0.2-disposition-index.md#01-to-02-migration-ledger). |
 | [Neutral contract/vector brief](./Brontide-Channel-0.2-Neutral-Contract-Brief-0.1.md) | Batch 2 data-only artifact, identity, property, vector, observation, and golden boundaries | See the [disposition index](./reviews/channel-0.2-disposition-index.md#neutral-contract-and-vector-brief). |
-| [Design reviews](./reviews/README.md) | Fresh-context review policy and retained attestations | 16 retained attestations, one `conforms-with-nonblocking-findings`; 29 iteration reviews: V, W, X, Y, Z, AA, AB, AC, AD, AM, AN, AO, AP, AQ, AR, AS, AT, AU, AV, AW, AX, AY, AZ, BA, BB, BC, BD, BE, BF, BG, BH, BI, BJ, BK. [Dispositions](./reviews/channel-0.2-disposition-index.md#design-reviews). |
+| [Design reviews](./reviews/README.md) | Fresh-context review policy and retained attestations | 17 retained attestations, one `conforms-with-nonblocking-findings`; 29 iteration reviews: V, W, X, Y, Z, AA, AB, AC, AD, AM, AN, AO, AP, AQ, AR, AS, AT, AU, AV, AW, AX, AY, AZ, BA, BB, BC, BD, BE, BF, BG, BH, BI, BJ, BK. [Dispositions](./reviews/channel-0.2-disposition-index.md#design-reviews). |
 | [Verification foundation plan](./Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md) | Why closure has not converged, and the work that has to exist before another review is spent | Not a design artifact and assessed by no closure review. See the [disposition index](./reviews/channel-0.2-disposition-index.md#verification-foundation-plan). |
 
 No Channel 0.2 schema, public type, package, host, provider, or encoding is authorized while a fresh

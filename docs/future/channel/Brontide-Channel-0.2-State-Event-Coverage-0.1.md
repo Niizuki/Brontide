@@ -3,7 +3,7 @@
 Date: 2026-08-11
 
 Status: proposed first-batch design artifact; awaiting a fresh independent
-closure re-review, on hold under the owner decision of 2026-08-17 recorded in the
+closure re-review, released on 2026-09-24 from the owner hold recorded in the
 [verification foundation plan](./Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md).
 Correction history is not carried here; it is owned by the
 [disposition index](./reviews/channel-0.2-disposition-index.md#stateevent-coverage-grid).
@@ -45,7 +45,7 @@ one route.
 | `unestablished` | fixed validation or proposal path | `state-violation` | `state-violation` | `state-violation` | `faulted` when a peer frame is attributable | `faulted` |
 | `establishing` | exact acceptance/refusal; any second or mismatched control faults | `state-violation` | `state-violation` | `state-violation` | `faulted` | `faulted` |
 | `established` | mutation/second establishment faults | interaction machine | first drain → `draining` | premature close → `faulted` | `faulted` | `faulted` |
-| `draining` | `state-violation` | local refusal or named peer-interaction rule | duplicate drain → `faulted` | empty set → `closed`; otherwise `faulted` | `faulted` unless the named peer-interaction row is nonfatal | `faulted` |
+| `draining` | `state-violation` | local refusal or named peer-interaction rule | peer's first drain → remains `draining`, the crossing case; a second drain from the same peer → `faulted` | empty set → `closed`; otherwise `faulted` | `faulted` unless the named peer-interaction row is nonfatal | `faulted` |
 | `closed` | terminal late input | terminal late input | terminal late input | terminal late input | terminal late input | remains `closed`; local observation only |
 | `faulted` | terminal late input | terminal late input | terminal late input | terminal late input | terminal late input | remains `faulted`; local observation only |
 
@@ -66,7 +66,7 @@ one route.
 | --- | --- | --- | --- | --- | --- | --- |
 | `unseen` | validation rows | no identity to correlate → state unchanged, recorded with <!-- fact:unseen-refusal-record -->its provenance `rejected-protocol`, its detailed reason `unopened-interaction-identity`, its effect certainty `known-none`, and the **refused-frame reference**: its kind, its **session**, its interaction identity, its **committing endpoint**, and its **arrival ordinal** for that interaction identity<!-- /fact --> — the kind here being `cancellation-control` | impossible local action | structural/local-refusal split | local session route | state unchanged, recorded with <!-- fact:unseen-refusal-record -->its provenance `rejected-protocol`, its detailed reason `unopened-interaction-identity`, its effect certainty `known-none`, and the **refused-frame reference**: its kind, its **session**, its interaction identity, its **committing endpoint**, and its **arrival ordinal** for that interaction identity<!-- /fact --> — the kind here being the refused control's own |
 | `validating` | validation rows | valid control: hold exactly one, apply on admission; second control → `peer-fault` | impossible local action | structural/local-refusal split | local session route | `rejected-protocol` |
-| `executing` | live replay → `peer-fault` | authorized → `cancel-requested`; denied → `cancel-refused`; invalid → `peer-fault` | success/failure accepted; cancelled → `internal-channel-failure` → `peer-fault` | committed fault → `peer-fault` | `lost` | `state-violation` → `peer-fault` |
+| `executing` | live replay → `peer-fault` | authorized → `cancel-requested`, emit `accepted` acknowledgement; denied → `cancel-refused`, emit `refused` acknowledgement; invalid → `peer-fault` | success/failure accepted; cancelled → `internal-channel-failure` → `peer-fault` | committed fault → `peer-fault` | `lost` | `state-violation` → `peer-fault` |
 | `cancel-requested` | live replay → `peer-fault` | any further control → `peer-fault` | success/failure/cancelled accepted | committed fault → `peer-fault` | `lost` | `state-violation` → `peer-fault` |
 | `cancel-refused` | live replay → `peer-fault` | any further control → `peer-fault` | success/failure accepted; cancelled → `internal-channel-failure` → `peer-fault` | committed fault → `peer-fault` | `lost` | `state-violation` → `peer-fault` |
 | any terminal | late-traffic latch | late-traffic latch | late-traffic latch | terminal preserved | local observation; terminal preserved | local record; no reply loop |

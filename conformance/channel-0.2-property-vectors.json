@@ -953,6 +953,108 @@
       }
     },
     {
+      "id": "C4-outcome-precedes-ack-fault-unavailable",
+      "capability": "C4",
+      "propertyMemberships": [
+        "C4-P2"
+      ],
+      "role": "named-mutation",
+      "summary": "C4-outcome-precedes-ack with the initiator unable to commit its late fault: the latch settles at `fault-unavailable` against the same settling and terminal frames. The contract states C4-P2's second conjunct over any late-traffic `state-violation` latched against a frame, and names the settling frame rather than the latch value as its witness, so the reordering is the same violation whether or not the fault commit succeeded. Until BL10 the executable conjunct selected `fault-committed` only and took this input green.",
+      "reorderingInjection": "declared: the recipient's two frames are delivered to the initiator in the reverse of the order the recipient committed them",
+      "sessions": [
+        {
+          "id": "s1",
+          "establishedProfile": "neutral-fixed-1",
+          "initialSessionState": "established"
+        }
+      ],
+      "declaredSteps": [
+        {
+          "id": "req",
+          "kind": "request",
+          "committingEndpoint": "initiator",
+          "session": "s1",
+          "interactionIdentity": "i1",
+          "commitIndex": 1
+        },
+        {
+          "id": "ack",
+          "kind": "cancellation-acknowledgement",
+          "committingEndpoint": "recipient",
+          "session": "s1",
+          "interactionIdentity": "i1",
+          "commitIndex": 1
+        },
+        {
+          "id": "out",
+          "kind": "outcome",
+          "committingEndpoint": "recipient",
+          "session": "s1",
+          "interactionIdentity": "i1",
+          "commitIndex": 2
+        }
+      ],
+      "delivery": [
+        {
+          "step": "req",
+          "disposition": "delivered",
+          "receivingEndpoint": "recipient",
+          "arrivalOrdinal": 1
+        },
+        {
+          "step": "out",
+          "disposition": "delivered",
+          "receivingEndpoint": "initiator",
+          "arrivalOrdinal": 1
+        },
+        {
+          "step": "ack",
+          "disposition": "delivered",
+          "receivingEndpoint": "initiator",
+          "arrivalOrdinal": 2
+        }
+      ],
+      "observations": {
+        "unseenRefusals": [],
+        "recipientAdmittedIdentities": [
+          {
+            "session": "s1",
+            "identities": [
+              "i1"
+            ]
+          }
+        ],
+        "lateTrafficLatches": [
+          {
+            "recordedBy": "initiator",
+            "session": "s1",
+            "interactionIdentity": "i1",
+            "category": "state-violation",
+            "latchValue": "fault-unavailable",
+            "settlingFrame": {
+              "kind": "cancellation-acknowledgement",
+              "session": "s1",
+              "interactionIdentity": "i1",
+              "committingEndpoint": "recipient",
+              "arrivalOrdinal": 2
+            },
+            "terminalFrame": {
+              "kind": "outcome",
+              "session": "s1",
+              "interactionIdentity": "i1",
+              "committingEndpoint": "recipient",
+              "arrivalOrdinal": 1
+            }
+          }
+        ]
+      },
+      "expected": {
+        "C4-P2": "red",
+        "conjunct": "C4-P2-conjunct-2"
+      },
+      "raisedBy": "BL10"
+    },
+    {
       "id": "S-conforming-single-session",
       "capability": "C2/C4",
       "propertyMemberships": [
@@ -1025,6 +1127,7 @@
       "sessionTimeline": [
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "unestablished",
           "to": "established",
@@ -1033,16 +1136,19 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "dispatch",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "terminal",
           "identity": "i1",
           "closes": "i1",
@@ -1050,6 +1156,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "established",
           "to": "draining",
@@ -1058,6 +1165,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "draining",
           "to": "closed",
@@ -1218,6 +1326,7 @@
       "sessionTimeline": [
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "unestablished",
           "to": "established",
@@ -1226,16 +1335,19 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "dispatch",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "terminal",
           "identity": "i1",
           "closes": "i1",
@@ -1243,6 +1355,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "established",
           "to": "faulted",
@@ -1435,6 +1548,7 @@
       "sessionTimeline": [
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "unestablished",
           "to": "established",
@@ -1443,16 +1557,19 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "dispatch",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "terminal",
           "identity": "i1",
           "closes": "i1",
@@ -1460,6 +1577,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "established",
           "to": "draining",
@@ -1468,6 +1586,7 @@
         },
         {
           "session": "s2",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "unestablished",
           "to": "established",
@@ -1476,16 +1595,19 @@
         },
         {
           "session": "s2",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i1"
         },
         {
           "session": "s2",
+          "endpoint": "initiator",
           "step": "dispatch",
           "identity": "i1"
         },
         {
           "session": "s2",
+          "endpoint": "initiator",
           "step": "terminal",
           "identity": "i1",
           "closes": "i1",
@@ -1600,6 +1722,153 @@
       "deterministicExpectedObservation": true
     },
     {
+      "id": "S-two-endpoints-one-session",
+      "capability": "C2/C4",
+      "propertyMemberships": [
+        "S1",
+        "S2",
+        "S3",
+        "S4",
+        "C2-P1"
+      ],
+      "role": "required-green",
+      "raisedBy": "BL3",
+      "summary": "One session with both endpoints' local histories recorded. The recipient begins drain while the initiator, which has not yet received that drain, admits and dispatches i1 under its own established session; the initiator then receives the drain, takes i1's terminal, and both endpoints close. Every row is legal in the history of the endpoint that records it, and the session machine runs once per local endpoint, so a property of it read per session rather than per endpoint session is red here on conforming behaviour -- which is BL3, and AL1's evidence qualifier 'locally' that AL1's correction replaced with 'session'.",
+      "sessions": [
+        {
+          "id": "s1",
+          "establishedProfile": "neutral-fixed-1",
+          "initialSessionState": "established",
+          "establishedBound": 2,
+          "establishedProfileRecord": {
+            "fixed": {
+              "version": "0.2",
+              "facets": [
+                "core"
+              ],
+              "limits": {
+                "maxInFlight": 2
+              }
+            },
+            "negotiated": {
+              "version": "0.2",
+              "facets": [
+                "core"
+              ],
+              "limits": {
+                "maxInFlight": 2
+              }
+            }
+          }
+        }
+      ],
+      "sessionTimeline": [
+        {
+          "session": "s1",
+          "endpoint": "recipient",
+          "step": "transition",
+          "from": "established",
+          "to": "draining",
+          "event": "begin-drain",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "endpoint": "initiator",
+          "step": "admit",
+          "identity": "i1"
+        },
+        {
+          "session": "s1",
+          "endpoint": "initiator",
+          "step": "dispatch",
+          "identity": "i1"
+        },
+        {
+          "session": "s1",
+          "endpoint": "initiator",
+          "step": "transition",
+          "from": "established",
+          "to": "draining",
+          "event": "receive-drain",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "endpoint": "initiator",
+          "step": "terminal",
+          "identity": "i1",
+          "closes": "i1",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "endpoint": "recipient",
+          "step": "transition",
+          "from": "draining",
+          "to": "closed",
+          "event": "close",
+          "accepted": true
+        },
+        {
+          "session": "s1",
+          "endpoint": "initiator",
+          "step": "transition",
+          "from": "draining",
+          "to": "closed",
+          "event": "receive-close",
+          "accepted": true
+        }
+      ],
+      "interactions": [
+        {
+          "session": "s1",
+          "identity": "i1",
+          "class": "relational",
+          "declarationMatches": 1,
+          "createsReadyOrRelease": false,
+          "dispatched": true,
+          "refusal": null,
+          "terminalHistories": [
+            {
+              "form": "protocol-fault",
+              "semanticSuccess": false,
+              "effectCertainty": "unknown"
+            }
+          ]
+        }
+      ],
+      "sessionEvents": [
+        {
+          "session": "s1",
+          "event": "begin-drain",
+          "creates": []
+        },
+        {
+          "session": "s1",
+          "event": "receive-drain",
+          "creates": []
+        },
+        {
+          "session": "s1",
+          "event": "close",
+          "creates": []
+        },
+        {
+          "session": "s1",
+          "event": "receive-close",
+          "creates": []
+        }
+      ],
+      "expected": {
+        "S1": "green",
+        "S2": "green",
+        "S3": "green",
+        "S4": "green",
+        "C2-P1": "green"
+      }
+    },
+    {
       "id": "S1-illegal-transition-accepted",
       "capability": "C2/C4",
       "propertyMemberships": [
@@ -1639,6 +1908,7 @@
       "sessionTimeline": [
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "unestablished",
           "to": "established",
@@ -1647,16 +1917,19 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "dispatch",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "terminal",
           "identity": "i1",
           "closes": "i1",
@@ -1664,6 +1937,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "established",
           "to": "unestablished",
@@ -1672,6 +1946,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "established",
           "to": "draining",
@@ -1680,6 +1955,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "draining",
           "to": "closed",
@@ -1761,6 +2037,7 @@
       "sessionTimeline": [
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "unestablished",
           "to": "established",
@@ -1769,11 +2046,13 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "terminal",
           "identity": "i1",
           "closes": "i1",
@@ -1781,6 +2060,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "established",
           "to": "draining",
@@ -1789,6 +2069,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "draining",
           "to": "closed",
@@ -1797,6 +2078,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "dispatch",
           "identity": "i1"
         }
@@ -1854,16 +2136,19 @@
       "sessionTimeline": [
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "dispatch",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "terminal",
           "identity": "i1",
           "closes": "i1",
@@ -1914,6 +2199,7 @@
       "sessionTimeline": [
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "unestablished",
           "to": "established",
@@ -1922,16 +2208,19 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "dispatch",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "terminal",
           "identity": "i1",
           "closes": "i1",
@@ -1939,6 +2228,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "established",
           "to": "draining",
@@ -1947,11 +2237,13 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i2"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "draining",
           "to": "closed",
@@ -2032,6 +2324,7 @@
       "sessionTimeline": [
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "unestablished",
           "to": "established",
@@ -2040,16 +2333,19 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "dispatch",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "terminal",
           "identity": "i1",
           "closes": "i1",
@@ -2057,6 +2353,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "established",
           "to": "draining",
@@ -2065,6 +2362,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "draining",
           "to": "closed",
@@ -2073,6 +2371,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "closed",
           "to": "established",
@@ -2153,6 +2452,7 @@
       "sessionTimeline": [
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "unestablished",
           "to": "established",
@@ -2161,16 +2461,19 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "dispatch",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "terminal",
           "identity": "i1",
           "closes": "i1",
@@ -2178,6 +2481,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "established",
           "to": "draining",
@@ -2186,6 +2490,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "draining",
           "to": "closed",
@@ -2266,6 +2571,7 @@
       "sessionTimeline": [
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "unestablished",
           "to": "established",
@@ -2274,16 +2580,19 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "dispatch",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "terminal",
           "identity": "i1",
           "closes": "i1",
@@ -2291,6 +2600,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "established",
           "to": "draining",
@@ -2299,6 +2609,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "draining",
           "to": "closed",
@@ -2381,6 +2692,7 @@
       "sessionTimeline": [
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "unestablished",
           "to": "established",
@@ -2389,21 +2701,25 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "dispatch",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "dispatch",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "terminal",
           "identity": "i1",
           "closes": "i1",
@@ -2411,6 +2727,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "established",
           "to": "draining",
@@ -2419,6 +2736,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "draining",
           "to": "closed",
@@ -2500,6 +2818,7 @@
       "sessionTimeline": [
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "unestablished",
           "to": "established",
@@ -2508,16 +2827,19 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "dispatch",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "terminal",
           "identity": "i1",
           "closes": "i1",
@@ -2525,6 +2847,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "terminal",
           "identity": "i1",
           "closes": "i1",
@@ -2532,6 +2855,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "established",
           "to": "draining",
@@ -2540,6 +2864,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "draining",
           "to": "closed",
@@ -2626,6 +2951,7 @@
       "sessionTimeline": [
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "unestablished",
           "to": "established",
@@ -2634,16 +2960,19 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "dispatch",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "terminal",
           "identity": "i1",
           "closes": "i1",
@@ -2651,6 +2980,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "established",
           "to": "draining",
@@ -2659,6 +2989,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "draining",
           "to": "closed",
@@ -2739,6 +3070,7 @@
       "sessionTimeline": [
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "unestablished",
           "to": "established",
@@ -2747,16 +3079,19 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "dispatch",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "terminal",
           "identity": "i1",
           "closes": "i1",
@@ -2764,6 +3099,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "established",
           "to": "draining",
@@ -2772,6 +3108,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "draining",
           "to": "closed",
@@ -2919,9 +3256,11 @@
             }
           }
         }
-      ],      "sessionTimeline": [
+      ],
+      "sessionTimeline": [
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "unestablished",
           "to": "established",
@@ -2930,16 +3269,19 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "dispatch",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "terminal",
           "identity": "i1",
           "closes": "i1",
@@ -2947,11 +3289,13 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i2"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "established",
           "to": "draining",
@@ -2960,6 +3304,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "draining",
           "to": "closed",
@@ -3004,7 +3349,8 @@
       "expected": {
         "I5": "red"
       }
-    },    {
+    },
+    {
       "id": "I5-terminal-closes-other-identity",
       "capability": "C2/C4",
       "propertyMemberships": [
@@ -3040,9 +3386,11 @@
             }
           }
         }
-      ],      "sessionTimeline": [
+      ],
+      "sessionTimeline": [
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "unestablished",
           "to": "established",
@@ -3051,16 +3399,19 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "dispatch",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "terminal",
           "identity": "i1",
           "closes": "i2",
@@ -3068,11 +3419,13 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i2"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "established",
           "to": "draining",
@@ -3081,6 +3434,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "draining",
           "to": "closed",
@@ -3125,7 +3479,8 @@
       "expected": {
         "I5": "red"
       }
-    },    {
+    },
+    {
       "id": "I5-concurrency-exceeds-bound",
       "capability": "C2/C4",
       "propertyMemberships": [
@@ -3164,6 +3519,7 @@
       "sessionTimeline": [
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "unestablished",
           "to": "established",
@@ -3172,26 +3528,31 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i2"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "dispatch",
           "identity": "i2"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "dispatch",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "terminal",
           "identity": "i1",
           "closes": "i1",
@@ -3199,6 +3560,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "established",
           "to": "draining",
@@ -3207,6 +3569,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "draining",
           "to": "closed",
@@ -3297,6 +3660,7 @@
       "sessionTimeline": [
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "unestablished",
           "to": "established",
@@ -3305,16 +3669,19 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "dispatch",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "terminal",
           "identity": "i1",
           "closes": "i1",
@@ -3322,6 +3689,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "established",
           "to": "draining",
@@ -3330,6 +3698,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "draining",
           "to": "closed",
@@ -3410,6 +3779,7 @@
       "sessionTimeline": [
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "unestablished",
           "to": "established",
@@ -3418,26 +3788,31 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i2"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "dispatch",
           "identity": "i2"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "dispatch",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "terminal",
           "identity": "i1",
           "closes": "i2",
@@ -3445,6 +3820,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "established",
           "to": "draining",
@@ -3453,6 +3829,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "draining",
           "to": "closed",
@@ -3549,6 +3926,7 @@
       "sessionTimeline": [
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "unestablished",
           "to": "established",
@@ -3557,21 +3935,25 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "dispatch",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "dispatch",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "terminal",
           "identity": "i1",
           "closes": "i1",
@@ -3579,6 +3961,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "established",
           "to": "draining",
@@ -3587,6 +3970,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "draining",
           "to": "closed",
@@ -3667,6 +4051,7 @@
       "sessionTimeline": [
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "unestablished",
           "to": "established",
@@ -3675,26 +4060,31 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i2"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "dispatch",
           "identity": "i2"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "dispatch",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "terminal",
           "identity": "i1",
           "closes": "i1",
@@ -3702,6 +4092,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "established",
           "to": "draining",
@@ -3710,6 +4101,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "draining",
           "to": "closed",
@@ -3800,6 +4192,7 @@
       "sessionTimeline": [
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "unestablished",
           "to": "established",
@@ -3808,21 +4201,25 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i2"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "dispatch",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "terminal",
           "identity": "i1",
           "closes": [
@@ -3833,6 +4230,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "established",
           "to": "draining",
@@ -3841,6 +4239,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "draining",
           "to": "closed",
@@ -3941,6 +4340,7 @@
       "sessionTimeline": [
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "unestablished",
           "to": "established",
@@ -3949,16 +4349,19 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "dispatch",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "terminal",
           "identity": "i1",
           "closes": "i1",
@@ -3966,6 +4369,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "established",
           "to": "draining",
@@ -3974,6 +4378,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "draining",
           "to": "closed",
@@ -4081,6 +4486,7 @@
       "sessionTimeline": [
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "unestablished",
           "to": "established",
@@ -4089,16 +4495,19 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "dispatch",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "terminal",
           "identity": "i1",
           "closes": "i1",
@@ -4106,6 +4515,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "established",
           "to": "draining",
@@ -4114,11 +4524,13 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i2"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "draining",
           "to": "closed",
@@ -4226,6 +4638,7 @@
       "sessionTimeline": [
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "unestablished",
           "to": "established",
@@ -4234,16 +4647,19 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "dispatch",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "terminal",
           "identity": "i1",
           "closes": "i1",
@@ -4251,6 +4667,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "established",
           "to": "draining",
@@ -4259,6 +4676,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "draining",
           "to": "closed",
@@ -4366,6 +4784,7 @@
       "sessionTimeline": [
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "unestablished",
           "to": "established",
@@ -4374,16 +4793,19 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "dispatch",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "terminal",
           "identity": "i1",
           "closes": "i1",
@@ -4391,6 +4813,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "established",
           "to": "draining",
@@ -4399,6 +4822,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "draining",
           "to": "closed",
@@ -4506,6 +4930,7 @@
       "sessionTimeline": [
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "unestablished",
           "to": "established",
@@ -4514,16 +4939,19 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "dispatch",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "terminal",
           "identity": "i1",
           "closes": "i1",
@@ -4531,6 +4959,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "established",
           "to": "draining",
@@ -4539,6 +4968,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "draining",
           "to": "closed",
@@ -4646,6 +5076,7 @@
       "sessionTimeline": [
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "unestablished",
           "to": "established",
@@ -4654,16 +5085,19 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "dispatch",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "terminal",
           "identity": "i1",
           "closes": "i1",
@@ -4671,6 +5105,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "established",
           "to": "draining",
@@ -4679,6 +5114,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "draining",
           "to": "closed",
@@ -4786,6 +5222,7 @@
       "sessionTimeline": [
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "unestablished",
           "to": "established",
@@ -4794,16 +5231,19 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "dispatch",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "terminal",
           "identity": "i1",
           "closes": "i1",
@@ -4811,6 +5251,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "established",
           "to": "draining",
@@ -4819,6 +5260,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "draining",
           "to": "closed",
@@ -4926,6 +5368,7 @@
       "sessionTimeline": [
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "unestablished",
           "to": "established",
@@ -4934,16 +5377,19 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "dispatch",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "terminal",
           "identity": "i1",
           "closes": "i1",
@@ -4951,6 +5397,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "established",
           "to": "draining",
@@ -4959,6 +5406,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "draining",
           "to": "closed",
@@ -5066,6 +5514,7 @@
       "sessionTimeline": [
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "unestablished",
           "to": "established",
@@ -5074,16 +5523,19 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "dispatch",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "terminal",
           "identity": "i1",
           "closes": "i1",
@@ -5091,6 +5543,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "established",
           "to": "draining",
@@ -5099,6 +5552,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "draining",
           "to": "closed",
@@ -5210,6 +5664,7 @@
       "sessionTimeline": [
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "unestablished",
           "to": "established",
@@ -5218,16 +5673,19 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "dispatch",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "terminal",
           "identity": "i1",
           "closes": "i1",
@@ -5235,6 +5693,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "established",
           "to": "draining",
@@ -5243,6 +5702,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "draining",
           "to": "closed",
@@ -5350,6 +5810,7 @@
       "sessionTimeline": [
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "unestablished",
           "to": "established",
@@ -5358,16 +5819,19 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "dispatch",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "terminal",
           "identity": "i1",
           "closes": "i1",
@@ -5375,6 +5839,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "established",
           "to": "draining",
@@ -5383,6 +5848,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "draining",
           "to": "closed",
@@ -5491,6 +5957,7 @@
       "sessionTimeline": [
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "unestablished",
           "to": "established",
@@ -5499,11 +5966,13 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "established",
           "to": "draining",
@@ -5512,6 +5981,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "draining",
           "to": "closed",
@@ -5622,6 +6092,7 @@
       "sessionTimeline": [
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "unestablished",
           "to": "established",
@@ -5630,11 +6101,13 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "established",
           "to": "draining",
@@ -5643,6 +6116,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "draining",
           "to": "closed",
@@ -5746,6 +6220,7 @@
       "sessionTimeline": [
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "unestablished",
           "to": "established",
@@ -5754,11 +6229,13 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "established",
           "to": "draining",
@@ -5767,6 +6244,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "draining",
           "to": "closed",
@@ -5794,8 +6272,8 @@
           "positionalShapeChecked": true,
           "authorityDecision": "denied",
           "authorityRecord": {
-          "decisionPoint": "pre-dispatch",
-          "initiatorAttribution": "initiator-a",
+            "decisionPoint": "pre-dispatch",
+            "initiatorAttribution": "initiator-a",
             "effectCertainty": "known-none"
           },
           "inPreReadyWindow": true,
@@ -5871,6 +6349,7 @@
       "sessionTimeline": [
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "unestablished",
           "to": "established",
@@ -5879,11 +6358,13 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "established",
           "to": "draining",
@@ -5892,6 +6373,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "draining",
           "to": "closed",
@@ -5995,6 +6477,7 @@
       "sessionTimeline": [
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "unestablished",
           "to": "established",
@@ -6003,11 +6486,13 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "established",
           "to": "draining",
@@ -6016,6 +6501,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "draining",
           "to": "closed",
@@ -6120,6 +6606,7 @@
       "sessionTimeline": [
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "unestablished",
           "to": "established",
@@ -6128,16 +6615,19 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "dispatch",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "terminal",
           "identity": "i1",
           "closes": "i1",
@@ -6145,6 +6635,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "established",
           "to": "draining",
@@ -6153,6 +6644,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "draining",
           "to": "closed",
@@ -6260,6 +6752,7 @@
       "sessionTimeline": [
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "unestablished",
           "to": "established",
@@ -6268,16 +6761,19 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "dispatch",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "terminal",
           "identity": "i1",
           "closes": "i1",
@@ -6285,6 +6781,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "established",
           "to": "draining",
@@ -6293,6 +6790,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "draining",
           "to": "closed",
@@ -6301,6 +6799,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "established",
           "to": "draining",
@@ -6409,6 +6908,7 @@
       "sessionTimeline": [
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "unestablished",
           "to": "established",
@@ -6417,16 +6917,19 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "dispatch",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "terminal",
           "identity": "i1",
           "closes": "i1",
@@ -6434,6 +6937,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "established",
           "to": "draining",
@@ -6442,6 +6946,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "draining",
           "to": "closed",
@@ -6550,6 +7055,7 @@
       "sessionTimeline": [
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "unestablished",
           "to": "established",
@@ -6558,16 +7064,19 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "dispatch",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "terminal",
           "identity": "i1",
           "closes": "i1",
@@ -6575,6 +7084,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "established",
           "to": "draining",
@@ -6583,6 +7093,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "draining",
           "to": "closed",
@@ -6690,6 +7201,7 @@
       "sessionTimeline": [
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "unestablished",
           "to": "established",
@@ -6698,16 +7210,19 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "dispatch",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "terminal",
           "identity": "i1",
           "closes": "i1",
@@ -6715,6 +7230,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "established",
           "to": "draining",
@@ -6723,6 +7239,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "draining",
           "to": "closed",
@@ -6830,6 +7347,7 @@
       "sessionTimeline": [
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "unestablished",
           "to": "established",
@@ -6838,16 +7356,19 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "dispatch",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "terminal",
           "identity": "i1",
           "closes": "i1",
@@ -6855,6 +7376,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "established",
           "to": "draining",
@@ -6863,6 +7385,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "draining",
           "to": "closed",
@@ -6970,6 +7493,7 @@
       "sessionTimeline": [
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "unestablished",
           "to": "established",
@@ -6978,16 +7502,19 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "dispatch",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "terminal",
           "identity": "i1",
           "closes": "i1",
@@ -6995,6 +7522,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "established",
           "to": "draining",
@@ -7003,6 +7531,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "draining",
           "to": "closed",
@@ -7110,6 +7639,7 @@
       "sessionTimeline": [
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "unestablished",
           "to": "established",
@@ -7118,16 +7648,19 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "dispatch",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "terminal",
           "identity": "i1",
           "closes": "i1",
@@ -7135,6 +7668,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "established",
           "to": "draining",
@@ -7143,6 +7677,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "draining",
           "to": "closed",
@@ -7250,6 +7785,7 @@
       "sessionTimeline": [
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "unestablished",
           "to": "established",
@@ -7258,16 +7794,19 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "dispatch",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "terminal",
           "identity": "i1",
           "closes": "i1",
@@ -7275,6 +7814,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "established",
           "to": "draining",
@@ -7283,6 +7823,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "draining",
           "to": "closed",
@@ -7389,6 +7930,7 @@
       "sessionTimeline": [
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "unestablished",
           "to": "established",
@@ -7397,16 +7939,19 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "dispatch",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "terminal",
           "identity": "i1",
           "closes": "i1",
@@ -7414,6 +7959,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "established",
           "to": "draining",
@@ -7422,6 +7968,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "draining",
           "to": "closed",
@@ -7523,6 +8070,7 @@
       "sessionTimeline": [
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "unestablished",
           "to": "established",
@@ -7531,16 +8079,19 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "admit",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "dispatch",
           "identity": "i1"
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "terminal",
           "identity": "i1",
           "closes": "i1",
@@ -7548,6 +8099,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "established",
           "to": "draining",
@@ -7556,6 +8108,7 @@
         },
         {
           "session": "s1",
+          "endpoint": "initiator",
           "step": "transition",
           "from": "draining",
           "to": "closed",

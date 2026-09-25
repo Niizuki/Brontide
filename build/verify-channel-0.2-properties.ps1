@@ -430,7 +430,10 @@ function Invoke-C4P2 {
         $category = Get-Field $latch 'category'
         $latchValue = Get-Field $latch 'latchValue'
         if ($null -ne $category -and [string]$category -ne 'state-violation') { continue }
-        if ($null -ne $latchValue -and [string]$latchValue -ne 'fault-committed') { continue }
+        # BL10: either settled value. The contract names the settling frame and "not the latch value" as
+        # the witness, so a reordering behind a failed fault commit is the same violation; reading
+        # `fault-committed` alone took that input green.
+        if ($null -ne $latchValue -and @('fault-committed', 'fault-unavailable') -notcontains [string]$latchValue) { continue }
 
         $settling = Get-Field $latch 'settlingFrame'
         $terminal = Get-Field $latch 'terminalFrame'
@@ -496,6 +499,9 @@ $legalSessionTransitions = @(
     'unestablished>established', 'unestablished>establishing', 'unestablished>closed',
     'establishing>established', 'establishing>closed',
     'established>draining', 'draining>faulted', 'draining>closed',
+    # BL1: the peer's first drain control received while this endpoint is already draining leaves it
+    # draining. The row is a self-loop so that the dispatch table stays closed over that input.
+    'draining>draining',
     # The machine's two `any nonterminal` rows -- a fatal recognized Channel violation and a
     # transport/process loss -- expanded over the nonterminal states. They were missing until AO1,
     # and `draining>faulted` was here only because a concrete row states that one as well, so `S1`
@@ -620,6 +626,18 @@ function Get-InitialSessionState {
         if ([string](Read-Required $session 'id' 'a session record') -eq $SessionId) { $sessionRecord = $session }
     }
     return [string](Read-Required $sessionRecord 'initialSessionState' "the record of session '$SessionId'")
+}
+
+# BL3. The session machine runs once per local endpoint -- "the first accepted local or peer drain moves
+# the local session", "no new interaction may be admitted locally" -- so the state a session-machine
+# property tracks is one endpoint's local session, keyed by the session and the endpoint whose history
+# the event belongs to. Keyed by the session alone, the two endpoints' legal histories of one session
+# were read as one history: the recipient's drain made the initiator's earlier-decided admission
+# "after the first drain", and the second endpoint's close read as a closed session transitioning.
+function Get-LocalSessionKey {
+    param($SessionEvent, [Parameter(Mandatory = $true)][string]$Subject)
+
+    return "$(Read-Required $SessionEvent 'session' $Subject)|$(Read-Required $SessionEvent 'endpoint' $Subject)"
 }
 
 # A scalar an obligation reads has no such default. A vector that does not say whether the realization
@@ -860,13 +878,14 @@ function Invoke-S2 {
     $timelineSubject = 'a session-timeline event'
     foreach ($sessionEvent in (Get-Timeline $Vector)) {
         $sessionId = [string](Read-Required $sessionEvent 'session' $timelineSubject)
+        $localKey = Get-LocalSessionKey $sessionEvent $timelineSubject
         $step = [string](Read-Required $sessionEvent 'step' $timelineSubject)
         if ($step -eq 'transition') {
-            if (Read-Required $sessionEvent 'accepted' $timelineSubject) { $state[$sessionId] = [string](Read-Required $sessionEvent 'to' $timelineSubject) }
+            if (Read-Required $sessionEvent 'accepted' $timelineSubject) { $state[$localKey] = [string](Read-Required $sessionEvent 'to' $timelineSubject) }
             continue
         }
         if ($step -ne 'dispatch') { continue }
-        $current = if ($state.ContainsKey($sessionId)) { $state[$sessionId] } else { Get-InitialSessionState $Vector $sessionId }
+        $current = if ($state.ContainsKey($localKey)) { $state[$localKey] } else { Get-InitialSessionState $Vector $sessionId }
         if ($current -ne 'established') {
             return New-Red "interaction $(Read-Required $sessionEvent 'identity' $timelineSubject) dispatched while its own session $sessionId was $current"
         }
@@ -876,21 +895,23 @@ function Invoke-S2 {
 
 function Invoke-S3 {
     param([string]$VectorId, $Vector, [object[]]$Steps)
-    # Per session. A second session establishing and admitting after the first drains is legal, and
-    # reading the drain across the vector is exactly the false red AL1 found.
+    # Per local session. A second session establishing and admitting after the first drains is legal,
+    # and reading the drain across the vector is exactly the false red AL1 found; an endpoint admitting
+    # before its OWN drain transition while its peer has already drained is legal too, which is BL3.
     $drained = @{}
     $timelineSubject = 'a session-timeline event'
     foreach ($sessionEvent in (Get-Timeline $Vector)) {
         $sessionId = [string](Read-Required $sessionEvent 'session' $timelineSubject)
+        $localKey = Get-LocalSessionKey $sessionEvent $timelineSubject
         $step = [string](Read-Required $sessionEvent 'step' $timelineSubject)
         if ($step -eq 'transition') {
             if ((Read-Required $sessionEvent 'accepted' $timelineSubject) -and
                 [string](Read-Required $sessionEvent 'to' $timelineSubject) -eq 'draining') {
-                if (-not $drained.ContainsKey($sessionId)) { $drained[$sessionId] = $true }
+                if (-not $drained.ContainsKey($localKey)) { $drained[$localKey] = $true }
             }
             continue
         }
-        if ($step -eq 'admit' -and $drained.ContainsKey($sessionId)) {
+        if ($step -eq 'admit' -and $drained.ContainsKey($localKey)) {
             return New-Red "session $sessionId admitted interaction $(Read-Required $sessionEvent 'identity' $timelineSubject) after its own first drain transition"
         }
     }
@@ -905,11 +926,12 @@ function Invoke-S4 {
         if ([string](Read-Required $sessionEvent 'step' $timelineSubject) -ne 'transition') { continue }
         if (-not (Read-Required $sessionEvent 'accepted' $timelineSubject)) { continue }
         $sessionId = [string](Read-Required $sessionEvent 'session' $timelineSubject)
+        $localKey = Get-LocalSessionKey $sessionEvent $timelineSubject
         $to = [string](Read-Required $sessionEvent 'to' $timelineSubject)
-        if ($terminal.ContainsKey($sessionId)) {
-            return New-Red "session $sessionId reached terminal state $($terminal[$sessionId]) and then transitioned to $to under the same session identity"
+        if ($terminal.ContainsKey($localKey)) {
+            return New-Red "session $sessionId reached terminal state $($terminal[$localKey]) and then transitioned to $to under the same session identity"
         }
-        if ($terminalSessionStates -contains $to) { $terminal[$sessionId] = $to }
+        if ($terminalSessionStates -contains $to) { $terminal[$localKey] = $to }
     }
     return New-Green
 }
@@ -1209,13 +1231,14 @@ function Invoke-C2P1 {
     $timelineSubject = 'a session-timeline event'
     foreach ($sessionEvent in (Get-Timeline $Vector)) {
         $sessionId = [string](Read-Required $sessionEvent 'session' $timelineSubject)
+        $localKey = Get-LocalSessionKey $sessionEvent $timelineSubject
         $step = [string](Read-Required $sessionEvent 'step' $timelineSubject)
         if ($step -eq 'transition') {
-            if (Read-Required $sessionEvent 'accepted' $timelineSubject) { $state[$sessionId] = [string](Read-Required $sessionEvent 'to' $timelineSubject) }
+            if (Read-Required $sessionEvent 'accepted' $timelineSubject) { $state[$localKey] = [string](Read-Required $sessionEvent 'to' $timelineSubject) }
             continue
         }
         if ($step -ne 'admit') { continue }
-        $current = if ($state.ContainsKey($sessionId)) { $state[$sessionId] } else { Get-InitialSessionState $Vector $sessionId }
+        $current = if ($state.ContainsKey($localKey)) { $state[$localKey] } else { Get-InitialSessionState $Vector $sessionId }
         if ($current -ne 'established') {
             return New-Red -Witness "session $sessionId accepted a new interaction while it was $current, so an input that must leave the state unchanged or enter faulted admitted instead" -Inherited $inheritedErrors
         }
@@ -1804,7 +1827,8 @@ $closedVocabularies = @(
        Fields = @('declaredSteps[].committingEndpoint', 'delivery[].receivingEndpoint',
                   'observations.lateTrafficLatches[].settlingFrame.committingEndpoint', 'observations.lateTrafficLatches[].terminalFrame.committingEndpoint',
                   'observations.unseenRefusals[].refusedFrame.committingEndpoint',
-                  'observations.lateTrafficLatches[].recordedBy', 'observations.unseenRefusals[].recordedBy')
+                  'observations.lateTrafficLatches[].recordedBy', 'observations.unseenRefusals[].recordedBy',
+                  'sessionTimeline[].endpoint')
        Members = @('initiator', 'recipient')
        Citations = @(@{ Artifact = $contractArtifact; Words = 'The profile declares its initiator role, recipient role, Operation/Shape positions, authority mode, allowed external phase predicate, and terminal forms.' }) }
     @{ Name = 'authority decision'
@@ -2812,15 +2836,19 @@ foreach ($vector in $vectorFile.vectors) {
     # the state the session was in before anything happened to it. `S2` and `C2-P1` now start from
     # the record; a first transition departing from any other state would have them tracking a
     # session the timeline never describes.
+    # BL3: per local endpoint, since each endpoint's history of the session starts in the stated state.
     foreach ($session in (Get-Sessions $vector)) {
         $sessionId = [string]$session.id
-        $firstTransition = $null
+        $firstTransitions = @{}
         foreach ($sessionEvent in (Get-Timeline $vector)) {
-            if ([string]$sessionEvent.step -eq 'transition' -and [string]$sessionEvent.session -eq $sessionId) { $firstTransition = $sessionEvent; break }
+            if ([string]$sessionEvent.step -ne 'transition' -or [string]$sessionEvent.session -ne $sessionId) { continue }
+            if (-not $firstTransitions.ContainsKey([string]$sessionEvent.endpoint)) { $firstTransitions[[string]$sessionEvent.endpoint] = $sessionEvent }
         }
-        if ($null -eq $firstTransition) { continue }
-        if ([string]$firstTransition.from -ne [string]$session.initialSessionState) {
-            $failures.Add("Vector '$vectorId' states that session '$sessionId' starts in '$($session.initialSessionState)' and its timeline's first transition for that session departs from '$($firstTransition.from)'. S2 and C2-P1 start from the state the record states, so the record and the timeline would have them tracking two different sessions.")
+        foreach ($firstEndpoint in ($firstTransitions.Keys | Sort-Object)) {
+            $firstTransition = $firstTransitions[$firstEndpoint]
+            if ([string]$firstTransition.from -ne [string]$session.initialSessionState) {
+                $failures.Add("Vector '$vectorId' states that session '$sessionId' starts in '$($session.initialSessionState)' and its timeline's first transition for that session at the $firstEndpoint departs from '$($firstTransition.from)'. S2 and C2-P1 start from the state the record states, so the record and the timeline would have them tracking two different sessions.")
+            }
         }
     }
 
@@ -3797,11 +3825,11 @@ if ($GeneratedCount -gt 0) {
             # Establishment takes one of the two legal routes to `established`. Both are edges the
             # legal table carries, and which one a realization takes is not a property's business.
             if ($Random.Next(0, 2) -eq 0) {
-                $timeline.Add([pscustomobject]@{ session = $sessionId; step = 'transition'; from = 'unestablished'; to = 'established'; event = 'validate-fixed-profile'; accepted = $true })
+                $timeline.Add([pscustomobject]@{ session = $sessionId; endpoint = 'initiator'; step = 'transition'; from = 'unestablished'; to = 'established'; event = 'validate-fixed-profile'; accepted = $true })
             }
             else {
-                $timeline.Add([pscustomobject]@{ session = $sessionId; step = 'transition'; from = 'unestablished'; to = 'establishing'; event = 'send-establish-proposal'; accepted = $true })
-                $timeline.Add([pscustomobject]@{ session = $sessionId; step = 'transition'; from = 'establishing'; to = 'established'; event = 'accept-establishment'; accepted = $true })
+                $timeline.Add([pscustomobject]@{ session = $sessionId; endpoint = 'initiator'; step = 'transition'; from = 'unestablished'; to = 'establishing'; event = 'send-establish-proposal'; accepted = $true })
+                $timeline.Add([pscustomobject]@{ session = $sessionId; endpoint = 'initiator'; step = 'transition'; from = 'establishing'; to = 'established'; event = 'accept-establishment'; accepted = $true })
             }
 
             # Admitted interactions, in waves that run up to but never past the session's own
@@ -3826,39 +3854,35 @@ if ($GeneratedCount -gt 0) {
                 # clause, `C5-P1`'s second and `C6-P1`'s second are evaluated by nothing, because each
                 # of them gates on a refusal or on a decision that is not `permitted`.
                 $isRefused = ($Random.Next(0, 4) -eq 0)
+                $isLost = $false
                 $terminalForm = if ($isRefused) { 'protocol-fault' }
                     elseif ($Random.Next(0, 2) -eq 0) { 'outcome' }
                     else { 'cancellation-acknowledgement' }
                 # I3 and C8-P1's second clause: only an application outcome is a semantic success.
                 $semanticSuccess = ($terminalForm -eq 'outcome')
-                $timeline.Add([pscustomobject]@{ session = $sessionId; step = 'admit'; identity = $identity })
+                $timeline.Add([pscustomobject]@{ session = $sessionId; endpoint = 'initiator'; step = 'admit'; identity = $identity })
                 $waveLive++
                 $waveIdentities.Add([pscustomobject]@{ Identity = $identity; Form = $terminalForm })
                 if (-not $isRefused) {
-                    $timeline.Add([pscustomobject]@{ session = $sessionId; step = 'dispatch'; identity = $identity })
-                    # BJ. One in four dispatched interactions receives a terminal fact that is REFUSED
-                    # before the one that closes it. The contract's failure clause for terminal facts
-                    # is what this is: a missing, extra, wrong-session or mismatched identity rejects
-                    # the claimed fact, and an interaction whose claimed fact was rejected stays
-                    # nonterminal, awaiting a valid one. So the identity keeps its slot -- it is
-                    # still in the wave and still counted live -- and reaches its one terminal history
-                    # when the wave closes, exactly as it would have. Until this the generated
-                    # population carried accepted terminals only, and the operand BI1 made decisive on
-                    # the declared corpus -- whether a terminal fact was accepted -- was exercised over
-                    # the population by nothing; every evaluator that reads a terminal step now meets a
-                    # refused one on a conforming vector, which is the side of it the declared
-                    # mutations cannot reach.
+                    $timeline.Add([pscustomobject]@{ session = $sessionId; endpoint = 'initiator'; step = 'dispatch'; identity = $identity })
+                    # BJ, as BL11 corrected it. One in four dispatched interactions receives a terminal
+                    # fact the realization refuses. The contract's failure clause is what refuses it --
+                    # a missing, extra, wrong-session or mismatched identity rejects the claimed fact --
+                    # and the interaction machine says what the refusal does to the interaction: at
+                    # `dispatched` an unusable terminal frame routes to `lost` with `unknown` certainty.
+                    # So the interaction is terminal at the refusal, its slot frees there, and a valid
+                    # terminal for it arriving later is late traffic, never an accepted terminal. The
+                    # first form of this block kept the interaction nonterminal "awaiting a valid one"
+                    # and accepted that later terminal, which is the `unusable terminal frame -> lost`
+                    # row mutated to ignore, and every property stayed green on it; the retained limit
+                    # probe BL11-a keeps that visible until a property can tell the two apart.
                     #
-                    # BK. And the refused fact is given each of the shapes that clause names, not only
-                    # the one BJ gave it. A fact refused while closing its own identity leaves every
-                    # evaluator's `accepted` test undecided but I5's: I7 and C4-P1's first clause skip a
-                    # refused fact before reading what it closes, and a fact closing exactly its own
-                    # identity is one they would have passed anyway. So the claim closes its own
-                    # identity, a MISMATCHED one -- a live sibling where the wave holds one, otherwise
-                    # an identity this session never admits, which another session may -- an EXTRA one
-                    # beside its own, or NONE; and one refused claim in four is followed by a second
-                    # before the fact that closes the interaction. The realization rejects each, and the
-                    # interaction is as nonterminal after two rejected claims as after one.
+                    # BK. The refused claim closes its own identity, a MISMATCHED one -- a live sibling
+                    # where the wave holds one, otherwise an identity this session never admits, which
+                    # another session may -- an EXTRA one beside its own, or NONE, so I7's and C4-P1's
+                    # `accepted` tests are exercised from the conforming side as I5's is. One refused
+                    # claim in four is followed by a second, which arrives after the loss and is
+                    # refused as late traffic.
                     if ($Random.Next(0, 4) -eq 0) {
                         $refusedClaims = 1 + [int]($ShapeRandom.Next(0, 4) -eq 0)
                         for ($refusedClaim = 1; $refusedClaim -le $refusedClaims; $refusedClaim++) {
@@ -3871,8 +3895,16 @@ if ($GeneratedCount -gt 0) {
                             if ($refusedShape -eq 1) { $refusedCloses = $otherIdentity }
                             elseif ($refusedShape -eq 2) { $refusedCloses = @($identity, $otherIdentity) }
                             elseif ($refusedShape -eq 3) { $refusedCloses = [string[]]@() }
-                            $timeline.Add([pscustomobject]@{ session = $sessionId; step = 'terminal'; identity = $identity; closes = $refusedCloses; accepted = $false })
+                            $timeline.Add([pscustomobject]@{ session = $sessionId; endpoint = 'initiator'; step = 'terminal'; identity = $identity; closes = $refusedCloses; accepted = $false })
+                            # The local loss the first refusal routes to, committed as the interaction's
+                            # terminal history, which is what frees its slot.
+                            if ($refusedClaim -eq 1) {
+                                $timeline.Add([pscustomobject]@{ session = $sessionId; endpoint = 'initiator'; step = 'terminal'; identity = $identity; closes = $identity; accepted = $true })
+                                $isLost = $true
+                            }
                         }
+                        $waveLive--
+                        [void]$waveIdentities.RemoveAt($waveIdentities.Count - 1)
                     }
                 }
                 # The wave closes when it is full or when the last interaction has been admitted, and
@@ -3882,7 +3914,7 @@ if ($GeneratedCount -gt 0) {
                 # goes stale while both stay green. BF.
                 if ($waveLive -ge $bound -or $interactionOrdinal -eq $interactionCount) {
                     foreach ($waveMember in $waveIdentities) {
-                        $timeline.Add([pscustomobject]@{ session = $sessionId; step = 'terminal'; identity = $waveMember.Identity; closes = $waveMember.Identity; accepted = $true })
+                        $timeline.Add([pscustomobject]@{ session = $sessionId; endpoint = 'initiator'; step = 'terminal'; identity = $waveMember.Identity; closes = $waveMember.Identity; accepted = $true })
                     }
                     $waveIdentities.Clear()
                     $waveLive = 0
@@ -3890,6 +3922,10 @@ if ($GeneratedCount -gt 0) {
                 # BD2. What the vector expects the observation's provenance to be. A conforming
                 # realization records exactly this, and the vector states it on every interaction rather
                 # than only where the two differ, which is what the neutral brief's vector format asks.
+                if ($isLost) {
+                    $terminalForm = 'cancellation-acknowledgement'
+                    $semanticSuccess = $false
+                }
                 $expectedProvenance = $(if ($isRefused) { 'local-pre-dispatch-refusal' } elseif ($semanticSuccess) { 'semantic-outcome' } else { 'local-loss-observation' })
                 $interactions.Add([pscustomobject]@{
                     session = $sessionId
@@ -3903,7 +3939,7 @@ if ($GeneratedCount -gt 0) {
                     refusal = $(if ($isRefused) {
                         [pscustomobject]@{ stage = 'pre-dispatch'; effectCertainty = 'known-none'; explicitEvidence = $true }
                     } else { $null })
-                    terminalHistories = @([pscustomobject]@{ form = $terminalForm; semanticSuccess = $semanticSuccess; effectCertainty = $(if ($isRefused) { 'known-none' } else { 'known' }); explicitEvidence = $true })
+                    terminalHistories = @([pscustomobject]@{ form = $terminalForm; semanticSuccess = $semanticSuccess; effectCertainty = $(if ($isRefused) { 'known-none' } elseif ($isLost) { 'unknown' } else { 'known' }); explicitEvidence = $true })
                     direction = 'initiator-to-recipient'
                     phasePredicate = $true
                     profileMatch = $true
@@ -4069,12 +4105,12 @@ if ($GeneratedCount -gt 0) {
                 # fact the timeline does not support. The machine's `any nonterminal` fault rows are
                 # wider than that, and their width is exercised by the establishment route above
                 # rather than pretended at here.
-                $timeline.Add([pscustomobject]@{ session = $sessionId; step = 'transition'; from = 'established'; to = 'faulted'; event = 'fatal-protocol-fault'; accepted = $true })
+                $timeline.Add([pscustomobject]@{ session = $sessionId; endpoint = 'initiator'; step = 'transition'; from = 'established'; to = 'faulted'; event = 'fatal-protocol-fault'; accepted = $true })
                 $sessionEvents.Add([pscustomobject]@{ session = $sessionId; event = 'fatal-protocol-fault'; creates = @() })
             }
             else {
-                $timeline.Add([pscustomobject]@{ session = $sessionId; step = 'transition'; from = 'established'; to = 'draining'; event = 'begin-drain'; accepted = $true })
-                $timeline.Add([pscustomobject]@{ session = $sessionId; step = 'transition'; from = 'draining'; to = 'closed'; event = 'close'; accepted = $true })
+                $timeline.Add([pscustomobject]@{ session = $sessionId; endpoint = 'initiator'; step = 'transition'; from = 'established'; to = 'draining'; event = 'begin-drain'; accepted = $true })
+                $timeline.Add([pscustomobject]@{ session = $sessionId; endpoint = 'initiator'; step = 'transition'; from = 'draining'; to = 'closed'; event = 'close'; accepted = $true })
                 $sessionEvents.Add([pscustomobject]@{ session = $sessionId; event = 'begin-drain'; creates = @() })
                 $sessionEvents.Add([pscustomobject]@{ session = $sessionId; event = 'close'; creates = @() })
             }

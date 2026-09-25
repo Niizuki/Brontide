@@ -3,7 +3,7 @@
 Date: 2026-08-11
 
 Status: proposed first-batch design artifact; awaiting a fresh independent
-closure re-review, on hold under the owner decision of 2026-08-17 recorded in the
+closure re-review, released on 2026-09-24 from the owner hold recorded in the
 [verification foundation plan](./Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md).
 Correction history is not carried here; it is owned by the
 [disposition index](./reviews/channel-0.2-disposition-index.md#interaction-state-machine).
@@ -92,12 +92,12 @@ with the same provenance, not a fictional global state.
 | `validating` | valid cancellation control for this admitted identity arrives | `validating` | no; hold exactly one control and apply it when admission resolves |
 | `validating` | any further cancellation control while one is held | `peer-fault` | no; emit one interaction-scoped `state-violation` |
 | `validating` | all checks pass and dispatch boundary is crossed | `executing` | yes |
-| `validating` | all checks pass, dispatch boundary is crossed, and one held cancellation control applies | `cancel-requested` or `cancel-refused` | yes; dispatch precedes the held control, which is then evaluated under local cancellation authority |
+| `validating` | all checks pass, dispatch boundary is crossed, and one held cancellation control applies | `cancel-requested` or `cancel-refused` | yes; dispatch precedes the held control, which is then evaluated under local cancellation authority; emit the nonterminal `accepted` or `refused` acknowledgement that decision reaches |
 | `validating` | local session or transport loss, with or without a held cancellation control | `lost` | no; any held control is discarded with no answering frame and the late-traffic latch does not fire |
 | `validating` | drain refuses this still-admitting interaction, with or without a held cancellation control | `refused-local` | no; an interaction whose admission has not resolved is outside the drain snapshot, and any held control is discarded with no answering frame |
 | `executing`, `cancel-requested`, or `cancel-refused` | handler returns success | `outcome-succeeded` | yes/known by profile evidence |
 | `executing`, `cancel-requested`, or `cancel-refused` | handler returns shaped failure | `outcome-failed` | possible; failure is not rollback |
-| `executing` | valid cancellation control arrives | `cancel-requested` | possible/already occurred |
+| `executing` | valid cancellation control arrives | `cancel-requested` | possible/already occurred; emit nonterminal `accepted` acknowledgement |
 | `executing` | structurally valid cancellation control is denied by local cancellation authority | `cancel-refused` | possible/already occurred; emit nonterminal `refused` acknowledgement |
 | `cancel-requested` or `cancel-refused` | any further cancellation control | `peer-fault` | possible/already occurred; no second handler signal, emit interaction-scoped `state-violation` |
 | `executing`, `cancel-requested`, or `cancel-refused` | structurally invalid, unrecognized, unsupported, or wrongly scoped cancellation control | `peer-fault` | possible/already occurred; emit one interaction-scoped protocol fault and ignore a later handler terminal |
@@ -108,6 +108,26 @@ with the same provenance, not a fictional global state.
 | `executing`, `cancel-requested`, or `cancel-refused` | session/transport loss or internal failure prevents a valid terminal commit | `lost` | `unknown` unless handler boundary evidence narrows it |
 | any terminal | first duplicate semantic terminal or late non-fault control while latch is `clear` | unchanged terminal | apply the `late-traffic-fault` latch; no redispatch or handler effect |
 | any terminal | peer fault, or any late traffic after the latch is settled | unchanged terminal | record locally; emit no answering frame |
+
+**A recipient-side refusal after dispatch is frameless.** Recipient authority denial, a receiver-local
+phase refusal, and a drain that refuses a still-admitting interaction each reach `refused-local` with
+no frame, and the initiator, already `dispatched`, receives nothing. Its only exit is a local loss
+observation -- `lost` with `unknown` certainty -- which core cannot schedule, because core has no idle
+timeout or keepalive: the host's timer or a transport loss observation closes it. Until then the
+interaction holds its in-flight slot, and orderly close waits because close requires an empty local
+in-flight set; where a held cancellation control is discarded on that branch, the initiator stays in
+`cancel-pending` for the same time. This is a stated limit under the 2026-09-25 ruling on **BL5**, not
+a behaviour to correct: the design is consistent, the initiator records its loss honestly, and the cost
+is owned by the host timer that ends it.
+
+**A frame naming an identity the initiator never opened** -- a well-formed terminal fact, cancellation
+acknowledgement or other interaction frame whose identity no initiator interaction of this session
+carries -- is dropped. The initiator records one local observation of it, the observation C10 requires
+for a recognized frame that opens no interaction, under provenance `rejected-protocol` with the same
+detailed reason the recipient's `unseen` refusal carries; it sends no answering frame and retains no
+history, latch, or reservation for the identity, for the reason the R1 ruling gave the recipient: a
+record kept for an identity the peer chose is unbounded state the peer controls. This is the
+2026-09-25 ruling on **BL12**.
 
 ## Admission order
 

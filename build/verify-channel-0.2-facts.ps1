@@ -354,6 +354,11 @@ foreach ($sweepFile in $sweepFiles) {
             $window = $flowed.Substring($windowStart, $windowEnd - $windowStart)
             $absent = @(@($sweepSpec.coTerms) | Where-Object { $window.IndexOf([string]$_, [System.StringComparison]::Ordinal) -lt 0 })
             if ($absent.Count -gt 0) { continue }
+            # BL8: one of the record's other fields beside the required co-terms, rather than one fixed
+            # field -- the fixed pair was a class inferred from the AL2 instance, and C10's own pre-AK1
+            # statement of the record named provenance and the frame kind and no effect certainty.
+            $anyPresent = @(@($sweepSpec.anyCoTerms) | Where-Object { $window.IndexOf([string]$_, [System.StringComparison]::Ordinal) -ge 0 })
+            if (@($sweepSpec.anyCoTerms).Count -gt 0 -and $anyPresent.Count -eq 0) { continue }
             # No neighbour exemption, and this is the difference from the two sweeps above. A fenced
             # publication in the window would excuse the passage beside it, and the AL2 instance was
             # two adjacent cells in one table row: abbreviating either one alone puts the other's
@@ -361,7 +366,7 @@ foreach ($sweepFile in $sweepFiles) {
             # occurrence that survives sentinelling is already outside every fence -- the co-terms are
             # what separate a statement of the record from prose about it, and a neighbour says
             # nothing about which this is.
-            $failures.Add("'$($sweepFile.Name)' has a passage that reads as a publication of '$($sweptFact.id)' -- its trigger '$($sweepSpec.trigger)' together with $(@($sweepSpec.coTerms) -join ' and ') -- with no fact fence. $($sweepSpec.why) Either fence it, or write about the record rather than listing what it holds.")
+            $failures.Add("'$($sweepFile.Name)' has a passage that reads as a publication of '$($sweptFact.id)' -- its trigger '$($sweepSpec.trigger)' together with $(@(@($sweepSpec.coTerms) + @($anyPresent)) -join ' and ') -- with no fact fence. $($sweepSpec.why) Either fence it, or write about the record rather than listing what it holds.")
         }
     }
 

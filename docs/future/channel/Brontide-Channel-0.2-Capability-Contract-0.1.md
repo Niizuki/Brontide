@@ -3,7 +3,7 @@
 Date: 2026-08-11
 
 Status: proposed first-batch behavioral contract; awaiting a fresh independent
-closure re-review, on hold under the owner decision of 2026-08-17 recorded in the
+closure re-review, released on 2026-09-24 from the owner hold recorded in the
 [verification foundation plan](./Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md).
 Correction history is not carried here; it is owned by the
 [disposition index](./reviews/channel-0.2-disposition-index.md#c1-c12-capability-contract).
@@ -97,18 +97,20 @@ session states. A profile may use those external facts as exact interaction guar
 **Authority and effect boundary.** A session transition never authorizes an Operation. Closing or
 faulting a session does not imply that an in-flight provider effect was undone.
 
-**Failure and uncertainty.** Illegal or duplicate control is a protocol fault. In particular, a
-second local or peer drain moves `draining` to `faulted`, records one session-scoped
-`state-violation`, preserves the first drain snapshot, and does not rewrite any interaction's effect
-certainty. Peer loss faults the local session and leaves each nonterminal interaction to record its
+**Failure and uncertainty.** Illegal or duplicate control is a protocol fault. Drain is counted per
+endpoint: each endpoint sends at most one drain control, so the peer's first drain control is legal in
+`draining` whichever endpoint drained first, and two drains that cross converge with no fault. A
+second drain control from the same peer, or a second local drain, moves `draining` to `faulted`,
+records one session-scoped `state-violation`, preserves the first drain snapshot, and does not rewrite
+any interaction's effect certainty. Peer loss faults the local session and leaves each nonterminal interaction to record its
 own effect certainty.
 
 **Named scenarios.** `C2-drain-refuses-new`, `C2-drain-preserves-in-flight`,
 `C2-ready-is-not-session-state`, and `C2-late-control-after-close`.
 
-**Property C2-P1.** Every accepted session transition belongs to the published transition table;
-every other input leaves the prior state unchanged or enters `faulted`, and no terminal session
-returns to a nonterminal state.
+**Property C2-P1.** In each endpoint's local history of a session, every accepted session transition
+belongs to the published transition table; every other input leaves the prior state unchanged or
+enters `faulted`, and no terminal session returns to a nonterminal state.
 
 **Evidence.** Transition-table properties in both stacks; every legal edge and representative
 illegal edge through a real process; fixed-profile transition evidence.
@@ -158,12 +160,23 @@ controls, and observations name the exact interaction. Reusing an accepted inter
 the same session is replay and never dispatches the handler again.
 
 No cross-interaction completion order is promised. Within one session, for one interaction identity,
-frames sent by one endpoint are delivered in the order that endpoint committed them. This is the
-whole of the ordering Channel 0.2 core promises, and it is what lets a recipient distinguish a
-cancellation control that races its own admission from a control naming an identity it has never
-been asked to open. The obligation binds one direction of one interaction, where an initiator commits
-at most a request and one cancellation control, so a realization over an unordered transport
-satisfies it by sequencing those frames rather than by building a general reordering buffer. Within
+frames sent by one endpoint are delivered in the order that endpoint committed them. It is what lets
+a recipient distinguish a cancellation control that races its own admission from a control naming an
+identity it has never been asked to open. The obligation binds one direction of one interaction, where
+an initiator commits at most a request and one cancellation control, so a realization over an
+unordered transport satisfies it by sequencing those frames rather than by building a general
+reordering buffer.
+
+Core promises one ordering fact more, **session-control order**: within one session, no frame an
+endpoint committed before a session control is delivered after that control, a session control being
+a drain or a close. A session control names no interaction, so the intra-interaction order does not
+reach it, and the session machine's close and drain rules assume exactly this order: without it a
+legal close overtakes the Outcome its sender committed first and the receiver faults the session, and
+a drain overtakes a request admitted before it and the receiver calls the request a violation. It
+binds a session control behind its own endpoint's earlier frames of that session and nothing else, so
+a realization over an unordered transport satisfies it by holding the control until those frames are
+delivered. The two are the whole of the ordering Channel 0.2 core promises. Session-control order is
+**BL2**, stated under the owner ruling of 2026-09-25. Within
 one interaction, accepted events follow the interaction state machine. A new session has a new
 identity and cannot resume or inherit the replay window of an old session unless a later extension
 defines a distinct resumption contract.
@@ -362,12 +375,13 @@ stays green is a finding against the property rather than evidence for the desig
 
 **Evidence.** Model-based state tests and generated interleavings in both stacks; neutral peer with
 out-of-order outcomes; replay and mismatch process vectors; and a realization-profile declaration of
-per-interaction frame order that a profile checks at establishment.
+per-interaction frame order and of session-control order that a profile checks at establishment.
 
 **Silence.** C4 promises neither fairness nor relative scheduling, cross-interaction or cross-session
-ordering, durable deduplication, or exactly-once effects. The intra-interaction frame order stated
-above is the whole of what it promises about order: nothing here constrains how a realization
-interleaves distinct interactions, and no ordering survives a session boundary.
+ordering, durable deduplication, or exactly-once effects. The intra-interaction frame order and the
+session-control order stated above are the whole of what it promises about order: nothing here
+constrains how a realization interleaves distinct interactions' frames with each other, and no ordering
+survives a session boundary.
 
 ## C5 — payload compatibility and bounds are positional and pre-effect
 
@@ -579,7 +593,9 @@ group, is exactly the violation of. C10 states the fact and delegates the field 
 that publish it, as it does for the settling frame.
 
 **A recognized frame that opens no interaction yields one too.** A cancellation control or other
-control naming an identity the recipient has never accepted is neither an attempted establishment nor
+control naming an identity the recipient has never accepted -- and, at the initiator, a well-formed
+frame naming an identity it never opened, which it drops with this observation and no answering frame
+under the 2026-09-25 ruling on **BL12** -- is neither an attempted establishment nor
 an attempted interaction — under C4 no interaction exists there — and it is refused as a peer
 statement, so without this sentence the one record of that refusal would be required by C4 and by
 nothing that owns observation. The observation records the refusal, carrying
@@ -638,8 +654,8 @@ the Channel core forms unless a future Channel version explicitly changes them.
 Retries are new attempts with new interaction identities and optional attributable causation to the
 prior attempt. Reusing one interaction identity is replay, not retry. Channel core promises no retry,
 durable delivery, cross-interaction ordering, persistence, resumption, or exactly-once effect. The
-single ordering fact core does own is C4's intra-interaction frame order; a facet may add delivery
-and ordering guarantees beyond it but may not weaken it.
+ordering facts core does own are C4's intra-interaction frame order and session-control order; a facet
+may add delivery and ordering guarantees beyond them but may not weaken either.
 
 **Authority and effect boundary.** An extension declaration grants nothing and cannot broaden C6.
 
@@ -704,7 +720,12 @@ means rather than counting or comparing it across the vector:
   visible, which is AF6 one level up. It is not decorative: `S3` bounded admission by "the first drain
   transition" with no session named, and read across a vector that carries two sessions the property
   is red on a second session legally establishing and admitting after the first one drains. That is
-  **AL1**, and no pattern built from the four members above could have matched it.
+  **AL1**, and no pattern built from the four members above could have matched it. The state is also
+  **each endpoint's own**: the session machine runs once per local endpoint, so the two endpoints of
+  one session hold two local histories of it, which may legitimately disagree at any instant -- one
+  already `draining` while the other still admits under `established`. A property reading session
+  state reads one endpoint's history of one session; read over the session alone it is red on
+  conforming behaviour, which is **BL3**.
 
 This is the same rule as the two above and it is stated for the same reason. AH1 gave the declared
 stimulus step its session, AI1 and AJ1 gave the settling-frame reference its session across every

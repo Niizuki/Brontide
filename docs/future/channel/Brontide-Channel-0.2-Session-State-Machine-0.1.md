@@ -3,7 +3,7 @@
 Date: 2026-08-11
 
 Status: proposed first-batch design artifact; awaiting a fresh independent
-closure re-review, on hold under the owner decision of 2026-08-17 recorded in the
+closure re-review, released on 2026-09-24 from the owner hold recorded in the
 [verification foundation plan](./Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md).
 Correction history is not carried here; it is owned by the
 [disposition index](./reviews/channel-0.2-disposition-index.md#session-state-machine).
@@ -69,7 +69,8 @@ and never advances it.
 | `establishing` | local validation or peer establishment refusal | `closed` | refusal provenance and `known-none` |
 | `unestablished` | local fixed validation refuses | `closed` | frameless local refusal and `known-none` |
 | `established` | local or peer drain begins | `draining` | drain initiator and current in-flight set |
-| `draining` | duplicate local or peer drain control | `faulted` | session-scoped `state-violation`; preserve the original drain snapshot and all interaction effect evidence |
+| `draining` | the peer's first drain control, received after this endpoint's own drain began | `draining` | no fault: the two drains crossed, the local drain snapshot stands, and the peer's drain is recorded beside it |
+| `draining` | a second drain control from the same peer, or a second local drain | `faulted` | session-scoped `state-violation`; preserve the original drain snapshot and all interaction effect evidence |
 | `draining` | all admitted interactions terminal and close is sent/received | `closed` | orderly close and empty in-flight set |
 | any nonterminal | fatal recognized Channel violation | `faulted` | peer fault or local violation provenance; each interaction records its own certainty |
 | any nonterminal | transport/process loss prevents continuation | `faulted` | local loss category/detection point; each interaction records its own certainty |
@@ -96,13 +97,25 @@ state.
 Drain is symmetric but its control occurs exactly once per endpoint history:
 
 1. the first accepted local or peer drain moves the local session to `draining`;
-2. a subsequent local or peer drain control is a session-scoped `state-violation` and moves the
-   session to `faulted`; the first drain snapshot and every interaction's effect evidence remain;
+2. each endpoint sends at most one drain control, so the peer's first drain control is legal in
+   `draining` whichever endpoint drained first: two drains that cross leave both endpoints `draining`
+   with no fault. A second drain control from the same peer, or a second local drain, is a
+   session-scoped `state-violation` and moves the session to `faulted`; the first drain snapshot and
+   every interaction's effect evidence remain. Counting drain per endpoint is **BL1**: counted per
+   session, two conforming endpoints that each began drain before the other's control arrived each
+   faulted the session and destroyed the admitted work drain exists to let finish;
 3. no new interaction may be admitted locally after the first drain transition;
 4. interactions already admitted continue under the interaction state machine;
 5. close is legal only when the local in-flight set is empty; and
 6. a peer close with locally nonterminal interactions is a protocol fault, not proof those
    interactions produced no effects.
+
+Items 5 and 6, and the refused row for a new peer interaction during drain, rely on
+**session-control order**, which C4 states: within one session, no frame an endpoint committed before
+a session control is delivered after that control. A close carries no interaction identity, so
+without it a legal close could overtake the Outcome its sender committed first, and the receiver would
+fault a session neither endpoint mishandled; a drain could overtake a request admitted before it, and
+the receiver would call that request a violation. Stating the order these rules assumed is **BL2**.
 
 Channel does not promise that an unresponsive peer will cooperate with drain. Timeout or transport
 loss faults the session and closes each nonterminal interaction through a local loss observation.
@@ -149,25 +162,32 @@ does not mutate the external state.
 
 ## Capability-wide properties
 
-Each of these is a statement about **one session**, and each says so. A vector may carry more than one
-session under AH1, so a property of this machine that leaves the session unnamed is read across the
-vector: that is **AL1**, and it made `S3` red on a vector whose two sessions both conform.
+Each of these is a statement about **one endpoint's local history of one session**, and each says so.
+A vector may carry more than one session under AH1, so a property of this machine that leaves the
+session unnamed is read across the vector: that is **AL1**, and it made `S3` red on a vector whose two
+sessions both conform. The machine also runs once per local endpoint -- the drain protocol moves "the
+local session" and forbids admission "locally" -- so a property that names the session and not the
+endpoint reads the two endpoints' legal histories of one session as one history: that is **BL3**, and
+it made `S2`, `S3` and `S4` red on a one-session vector conforming at both endpoints.
 
-- **S1.** In each session the vector carries, every accepted transition of that session is in the
-  legal table.
-- **S2.** No interaction dispatches outside its own session's `established` state.
-- **S3.** Within each session the vector carries, no new interaction is admitted after that session's
-  first drain transition. The scope is the whole of this property: the drain transition belongs to one
-  session, and a second session establishing and admitting afterwards is legal.
-- **S4.** Within each session the vector carries, a terminal session never becomes nonterminal and is
-  never resumed under the same session identity.
-- **S5.** For each session the vector carries, fixed and negotiated establishment of that session's
-  own declared profile produce equal normative profile records. The comparison is between the two
+- **S1.** In each endpoint's local history of each session the vector carries, every accepted
+  transition of that session is in the legal table.
+- **S2.** No interaction dispatches outside the `established` state of its own session at the endpoint
+  that dispatches it.
+- **S3.** Within each endpoint's local history of each session the vector carries, no new interaction
+  is admitted after that endpoint's first drain transition of that session. The scope is the whole of
+  this property: the drain transition belongs to one endpoint's history of one session, so a second
+  session establishing and admitting afterwards is legal, and so is the peer admitting before its own
+  drain transition while this endpoint has already drained.
+- **S4.** Within each endpoint's local history of each session the vector carries, a terminal session
+  never becomes nonterminal and is never resumed under the same session identity.
+- **S5.** For each session the vector carries, at each endpoint, fixed and negotiated establishment of
+  that session's own declared profile produce equal normative profile records. The comparison is between the two
   paths to **one** declared profile, which is what the fixed and negotiated equivalence section above
   states; two sessions carrying two different declared profiles are conforming and this property says
   nothing about them. That qualifier is **AL4**, and it is the `AK8` correction `C1-P1` received.
-- **S6.** In any session the vector carries, no session event creates Ready, Release, authority, or an
-  application Outcome.
+- **S6.** In any endpoint's local history of any session the vector carries, no session event creates
+  Ready, Release, authority, or an application Outcome.
 
 Each property receives a generated model test in both stacks and a named negative probe in the
 neutral verifier before implementation closure.

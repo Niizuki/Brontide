@@ -142,10 +142,20 @@
                   }
                 },
                 {
-                  "equals": {
-                    "field": "latchValue",
-                    "value": "fault-committed"
-                  }
+                  "any-of": [
+                    {
+                      "equals": {
+                        "field": "latchValue",
+                        "value": "fault-committed"
+                      }
+                    },
+                    {
+                      "equals": {
+                        "field": "latchValue",
+                        "value": "fault-unavailable"
+                      }
+                    }
+                  ]
                 }
               ]
             },
@@ -184,7 +194,8 @@
             "citations": [
               "The witness is the settling frame and not the latch value: fault-committed names no frame, and the mutation and the two cases the property must leave green all record it (contract, C4).",
               "The second operand is the terminal-frame reference rather than the terminal form, because a form identifies one frame only while an endpoint commits at most one frame of that form for one identity, and a duplicate terminal is an endpoint committing two (AK6).",
-              "Restricting the conjunct to one endpoint's own frames is load-bearing: a legal late control after a peer's terminal and a duplicate terminal from a nonconformant peer must both stay green."
+              "Restricting the conjunct to one endpoint's own frames is load-bearing: a legal late control after a peer's terminal and a duplicate terminal from a nonconformant peer must both stay green.",
+              "The latch is read at either settled value: the contract states the conjunct over a late-traffic state-violation latched against a frame and names the settling frame, not the latch value, as the witness, so a reordering behind a failed fault commit is the same violation (BL10, 2026-09-25 owner ruling)."
             ]
           }
         ]
@@ -201,6 +212,12 @@
           "conjunct": "C4-P2-conjunct-2",
           "expected": "red",
           "note": "A realization delivers the recipient's semantic Outcome before the cancellation acknowledgement the recipient committed first, so the acknowledgement lands on an interaction the Outcome has already made terminal. The expected observation contains one late-traffic state-violation whose latch records the displaced acknowledgement as the frame that settled it."
+        },
+        {
+          "vector": "C4-outcome-precedes-ack-fault-unavailable",
+          "conjunct": "C4-P2-conjunct-2",
+          "expected": "red",
+          "note": "BL10. The same reordering behind a failed fault commit: the conjunct reads every late-traffic state-violation latch, as the contract's statement does, so a latch at fault-unavailable is witnessed as one at fault-committed is."
         }
       ],
       "requiredGreen": [
@@ -365,7 +382,7 @@
       "id": "S1",
       "capability": "C2",
       "statedIn": "docs/future/channel/Brontide-Channel-0.2-Session-State-Machine-0.1.md",
-      "statement": "In each session the vector carries, every accepted transition of that session is in the legal table.",
+      "statement": "In each endpoint's local history of each session the vector carries, every accepted transition of that session is in the legal table.",
       "universalSelector": {
         "capability": "C2"
       },
@@ -389,6 +406,10 @@
         {
           "vector": "S-two-sessions-conforming",
           "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        },
+        {
+          "vector": "S-two-endpoints-one-session",
+          "member": "one session with both endpoints' local histories recorded, the initiator admitting under its own established session after the recipient has begun drain"
         }
       ],
       "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on: the simplest conforming realization, and the two-session vector AL1 and AK7 were raised for -- a property that reads one session's fact across the vector is red on the second while being green on the first, which is how S3 and S5 survived every earlier audit.",
@@ -413,7 +434,7 @@
       "id": "S2",
       "capability": "C2",
       "statedIn": "docs/future/channel/Brontide-Channel-0.2-Session-State-Machine-0.1.md",
-      "statement": "No interaction dispatches outside its own session's `established` state.",
+      "statement": "No interaction dispatches outside the `established` state of its own session at the endpoint that dispatches it.",
       "universalSelector": {
         "capability": "C2"
       },
@@ -437,6 +458,10 @@
         {
           "vector": "S-two-sessions-conforming",
           "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        },
+        {
+          "vector": "S-two-endpoints-one-session",
+          "member": "one session with both endpoints' local histories recorded, the initiator admitting under its own established session after the recipient has begun drain"
         }
       ],
       "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on: the simplest conforming realization, and the two-session vector AL1 and AK7 were raised for -- a property that reads one session's fact across the vector is red on the second while being green on the first, which is how S3 and S5 survived every earlier audit.",
@@ -466,7 +491,7 @@
       "id": "S3",
       "capability": "C2",
       "statedIn": "docs/future/channel/Brontide-Channel-0.2-Session-State-Machine-0.1.md",
-      "statement": "Within each session the vector carries, no new interaction is admitted after that session's first drain transition.",
+      "statement": "Within each endpoint's local history of each session the vector carries, no new interaction is admitted after that endpoint's first drain transition of that session.",
       "universalSelector": {
         "capability": "C2"
       },
@@ -490,6 +515,10 @@
         {
           "vector": "S-two-sessions-conforming",
           "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        },
+        {
+          "vector": "S-two-endpoints-one-session",
+          "member": "one session with both endpoints' local histories recorded, the initiator admitting under its own established session after the recipient has begun drain"
         }
       ],
       "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on: the simplest conforming realization, and the two-session vector AL1 and AK7 were raised for -- a property that reads one session's fact across the vector is red on the second while being green on the first, which is how S3 and S5 survived every earlier audit.",
@@ -514,7 +543,7 @@
       "id": "S4",
       "capability": "C2",
       "statedIn": "docs/future/channel/Brontide-Channel-0.2-Session-State-Machine-0.1.md",
-      "statement": "Within each session the vector carries, a terminal session never becomes nonterminal and is never resumed under the same session identity.",
+      "statement": "Within each endpoint's local history of each session the vector carries, a terminal session never becomes nonterminal and is never resumed under the same session identity.",
       "universalSelector": {
         "capability": "C2"
       },
@@ -538,6 +567,10 @@
         {
           "vector": "S-two-sessions-conforming",
           "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        },
+        {
+          "vector": "S-two-endpoints-one-session",
+          "member": "one session with both endpoints' local histories recorded, the initiator admitting under its own established session after the recipient has begun drain"
         }
       ],
       "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on: the simplest conforming realization, and the two-session vector AL1 and AK7 were raised for -- a property that reads one session's fact across the vector is red on the second while being green on the first, which is how S3 and S5 survived every earlier audit.",
@@ -562,7 +595,7 @@
       "id": "S5",
       "capability": "C2",
       "statedIn": "docs/future/channel/Brontide-Channel-0.2-Session-State-Machine-0.1.md",
-      "statement": "For each session the vector carries, fixed and negotiated establishment of that session's own declared profile produce equal normative profile records.",
+      "statement": "For each session the vector carries, at each endpoint, fixed and negotiated establishment of that session's own declared profile produce equal normative profile records.",
       "universalSelector": {
         "capability": "C2"
       },
@@ -610,7 +643,7 @@
       "id": "S6",
       "capability": "C2",
       "statedIn": "docs/future/channel/Brontide-Channel-0.2-Session-State-Machine-0.1.md",
-      "statement": "In any session the vector carries, no session event creates Ready, Release, authority, or an application Outcome.",
+      "statement": "In any endpoint's local history of any session the vector carries, no session event creates Ready, Release, authority, or an application Outcome.",
       "universalSelector": {
         "capability": "C2"
       },
@@ -1134,7 +1167,7 @@
       "id": "C2-P1",
       "capability": "C2",
       "statedIn": "docs/future/channel/Brontide-Channel-0.2-Capability-Contract-0.1.md",
-      "statement": "Every accepted session transition belongs to the published transition table; every other input leaves the prior state unchanged or enters `faulted`, and no terminal session returns to a nonterminal state.",
+      "statement": "In each endpoint's local history of a session, every accepted session transition belongs to the published transition table; every other input leaves the prior state unchanged or enters `faulted`, and no terminal session returns to a nonterminal state.",
       "universalSelector": {
         "capability": "C2"
       },
@@ -1168,6 +1201,10 @@
         {
           "vector": "S-two-sessions-conforming",
           "member": "two sessions conforming, the second establishing and admitting after the first drains"
+        },
+        {
+          "vector": "S-two-endpoints-one-session",
+          "member": "one session with both endpoints' local histories recorded, the initiator admitting under its own established session after the recipient has begun drain"
         }
       ],
       "requiredGreenNote": "Stated rather than `owed`. Both members are legal inputs the property must not fail on, and the second is the two-session vector AL1 and AK7 were raised for.",

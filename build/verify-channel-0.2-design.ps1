@@ -249,8 +249,10 @@ Assert-ContainsAll 'Channel 0.2 live replay and recipient provenance paths' $int
     '| initiator `peer-fault` / recipient `peer-fault` / recipient `rejected-protocol` | no | yes | receipt/commit also observed locally |',
     '| initiator or recipient `lost` | no | no | yes |'
 )
+# D1's result, as BL1 scoped it: a duplicate drain is a second one from the same endpoint, and the
+# peer's first drain after this endpoint drained is the crossing case, which converges.
 Assert-ContainsAll 'Channel 0.2 duplicate drain result' $session @(
-    '| `draining` | duplicate local or peer drain control | `faulted` | session-scoped `state-violation`; preserve the original drain snapshot and all interaction effect evidence |'
+    '| `draining` | a second drain control from the same peer, or a second local drain | `faulted` | session-scoped `state-violation`; preserve the original drain snapshot and all interaction effect evidence |'
 )
 Assert-ContainsAll 'Channel 0.2 cancellation acknowledgement totality' $interaction @(
     '| `cancel-accepted` | no | Peer accepted the one cancellation request; the interaction still awaits a terminal fact. |',
@@ -323,7 +325,7 @@ Assert-ContainsAll 'Channel 0.2 cancellation admission race (C8)' (Get-FlowedTex
 # The interaction machine must carry the two recipient rows the rule needs.
 Assert-ContainsAll 'Channel 0.2 cancellation admission race (interaction machine)' $interaction @(
     '| `validating` | valid cancellation control for this admitted identity arrives | `validating` | no; hold exactly one control and apply it when admission resolves |',
-    '| `validating` | all checks pass, dispatch boundary is crossed, and one held cancellation control applies | `cancel-requested` or `cancel-refused` | yes; dispatch precedes the held control, which is then evaluated under local cancellation authority |'
+    '| `validating` | all checks pass, dispatch boundary is crossed, and one held cancellation control applies | `cancel-requested` or `cancel-refused` | yes; dispatch precedes the held control, which is then evaluated under local cancellation authority; emit the nonterminal `accepted` or `refused` acknowledgement that decision reaches |'
 )
 
 # R2: the two endpoint preconditions are two local states with no synchronising event between them.
@@ -773,6 +775,73 @@ Assert-ContainsAll 'Channel 0.2 held control under loss (interaction machine)' $
     '| `validating` | drain refuses this still-admitting interaction, with or without a held cancellation control | `refused-local` | no; an interaction whose admission has not resolved is outside the drain snapshot, and any held control is discarded with no answering frame |'
 )
 
+# BL1, under the owner ruling of 2026-09-25: drain is counted per endpoint. Two endpoints that each
+# legally begin drain before the other's control arrives each received the other's as a "duplicate"
+# and faulted the session, destroying the admitted work drain exists to let finish and accusing a peer
+# that erred in nothing -- R1's race-turned-fault on the session machine. Each endpoint sends at most
+# one drain control, so the peer's first is legal whichever side drained first; only a second from
+# the same peer faults. Every artifact that states the duplicate rule states it that way, and none
+# keeps the "local or peer" form the crossing case fell through.
+$bl1Session = Get-FlowedText $session
+$bl1Coverage = Get-FlowedText $stateEventCoverage
+Assert-ContainsAll 'Channel 0.2 crossing drains (session machine, BL1)' $bl1Session @("the peer's first drain control", 'second drain control from the same peer')
+Assert-ContainsAll 'Channel 0.2 crossing drains (C2, BL1)' $flowedContract @("the peer's first drain control", 'second drain control from the same peer')
+Assert-ContainsAll 'Channel 0.2 crossing drains (grid, BL1)' $bl1Coverage @("peer's first drain")
+foreach ($bl1Stale in @(
+        @{ Where = 'the session machine'; Text = $bl1Session; Phrase = 'a subsequent local or peer drain control is a session-scoped' },
+        @{ Where = 'the session machine'; Text = $bl1Session; Phrase = 'duplicate local or peer drain control' },
+        @{ Where = 'C2'; Text = $flowedContract; Phrase = 'second local or peer drain moves `draining` to `faulted`' })) {
+    if ($bl1Stale.Text.IndexOf($bl1Stale.Phrase, [System.StringComparison]::Ordinal) -ge 0) {
+        $failures.Add("$($bl1Stale.Where) still states '$($bl1Stale.Phrase)'. Read literally it faults on the peer's first drain control whenever this endpoint drained first, which is two conforming endpoints crossing their drains and each accusing the other. Drain is counted per endpoint under the 2026-09-25 ruling. This is BL1.")
+    }
+}
+
+# BL2, under the owner ruling of 2026-09-25: a session control is an ordering barrier for the frames
+# its own endpoint committed before it. C4's order binds one interaction only, so a legal close
+# overtook the Outcome it followed and a drain overtook a request admitted before it, and the session
+# machine's close and drain rules silently assumed the order C4 declined to promise. The obligation is
+# S1's shape again -- stated in C4, owned by `channel` in the matrix, declared by the profile, carried
+# by the ledger's new-evidence inventory -- and C4 no longer calls intra-interaction order the whole of
+# what core promises.
+$bl2Barrier = 'no frame an endpoint committed before a session control'
+Assert-ContainsAll 'Channel 0.2 session-control order (C4, BL2)' $flowedContract @($bl2Barrier)
+Assert-ContainsAll 'Channel 0.2 session-control order (session machine, BL2)' $bl1Session @('session-control order')
+if ($flowedContract.IndexOf('This is the whole of the ordering Channel 0.2 core promises', [System.StringComparison]::Ordinal) -ge 0) {
+    $failures.Add('C4 still calls intra-interaction frame order "the whole of the ordering Channel 0.2 core promises". Under the 2026-09-25 ruling a session control is also an ordering barrier for its endpoint''s earlier frames, and a sentence denying it is the one a realization reads to decide it may reorder a close ahead of an Outcome. This is BL2.')
+}
+$bl2OwnerRow = @($responsibility -split "`r?`n" | Where-Object { $_ -match '^\| Session-control order \|' })
+if ($bl2OwnerRow.Count -ne 1 -or $bl2OwnerRow[0] -notmatch '^\| Session-control order \| `channel` \|') {
+    $failures.Add('The responsibility matrix carries no `Session-control order` row owned by `channel`. The barrier is a Channel core obligation under the 2026-09-25 ruling, and a fact the matrix gives no owner is the S1 shape the ordering row was added to end. This is BL2.')
+}
+$bl2Establishment = ($neutralBrief -split '## Version and establishment rule', 2)[1] -split '## Message-schema separation', 2 | Select-Object -First 1
+if (-not $bl2Establishment -or (Get-FlowedText $bl2Establishment).IndexOf('session-control order', [System.StringComparison]::Ordinal) -lt 0) {
+    $failures.Add('The neutral brief''s establishment rule does not carry the realization''s session-control order declaration, although the 2026-09-25 ruling makes it a profile obligation checked at establishment as per-interaction frame order is. This is BL2.')
+}
+# BL4: the recipient never emitted the `accepted` acknowledgement the initiator's machine consumes --
+# B2's defect, corrected for `refused` and left for `accepted`. Both producing rows and the grid cell
+# that enumerates them carry the emission.
+Assert-ContainsAll 'Channel 0.2 accepted cancellation acknowledgement (interaction machine, BL4)' $interaction @(
+    '| `executing` | valid cancellation control arrives | `cancel-requested` | possible/already occurred; emit nonterminal `accepted` acknowledgement |',
+    'emit the nonterminal `accepted` or `refused` acknowledgement that decision reaches'
+)
+Assert-ContainsAll 'Channel 0.2 accepted cancellation acknowledgement (grid, BL4)' $stateEventCoverage @('`cancel-requested`, emit `accepted` acknowledgement')
+
+# BL12, under the 2026-09-25 ruling: the initiator's frame naming an identity it never opened has a
+# route, an observation and a retention rule, as the recipient's `unseen` case does, and C10 -- which
+# owns observation -- names it.
+Assert-ContainsAll 'Channel 0.2 initiator unopened identity (interaction machine, BL12)' (Get-FlowedText $interaction) @('frame naming an identity the initiator never opened')
+Assert-ContainsAll 'Channel 0.2 initiator unopened identity (C10, BL12)' $flowedContract @('at the initiator, a well-formed frame naming an identity it never opened')
+
+# BL5, under the same ruling: a recipient-side refusal after dispatch is frameless, and its cost to the
+# initiator is stated where silence is recorded rather than left unowned.
+Assert-ContainsAll 'Channel 0.2 frameless recipient refusal (completeness review, BL5)' (Get-FlowedText $completeness) @('recipient-side frameless refusal after the request crossed dispatch')
+Assert-ContainsAll 'Channel 0.2 frameless recipient refusal (interaction machine, BL5)' (Get-FlowedText $interaction) @('A recipient-side refusal after dispatch is frameless')
+
+$bl2LedgerEvidence = ($migration -split '## New evidence required by redesign', 2)[1] -split '## Golden encodings, parity profiles, and pins', 2 | Select-Object -First 1
+if (-not $bl2LedgerEvidence -or (Get-FlowedText $bl2LedgerEvidence).IndexOf('session-control order', [System.StringComparison]::Ordinal) -lt 0) {
+    $failures.Add('The migration ledger''s new-evidence inventory does not list session-control order, a 0.2 obligation with no 0.1 predecessor to carry it in by another route. This is BL2.')
+}
+
 Assert-ContainsAll 'Channel 0.2 responsibility matrix' $responsibility @(
     'Channel contract version',
     'Session establishment/drain/close/fault',
@@ -1195,7 +1264,7 @@ else {
 
 $reviewDirectory = Join-Path $channelPath 'reviews'
 $reviewMarkdown = @(Get-ChildItem -LiteralPath $reviewDirectory -Filter '*.md' -File)
-$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-design-foundation-closure-review-9-attestation.md', 'channel-0.2-design-foundation-closure-review-10-attestation.md', 'channel-0.2-design-foundation-closure-review-11-attestation.md', 'channel-0.2-design-foundation-closure-review-12-attestation.md', 'channel-0.2-design-foundation-closure-review-13-attestation.md', 'channel-0.2-design-foundation-closure-review-14-attestation.md', 'channel-0.2-design-foundation-closure-review-15-attestation.md', 'channel-0.2-design-foundation-closure-review-16-attestation.md', 'channel-0.2-u1-correction-iteration-review.md', 'channel-0.2-w-correction-iteration-review.md', 'channel-0.2-ac-correction-iteration-review.md', 'channel-0.2-ad-correction-iteration-review.md', 'channel-0.2-am-iteration-review.md', 'channel-0.2-an-iteration-review.md', 'channel-0.2-ao-iteration-review.md', 'channel-0.2-ap-iteration-review.md', 'channel-0.2-aq-iteration-review.md', 'channel-0.2-ar-iteration-review.md', 'channel-0.2-as-iteration-review.md', 'channel-0.2-at-iteration-review.md', 'channel-0.2-au-iteration-review.md', 'channel-0.2-av-iteration-review.md', 'channel-0.2-aw-iteration-review.md', 'channel-0.2-ax-iteration-review.md', 'channel-0.2-ay-iteration-review.md', 'channel-0.2-az-iteration-review.md', 'channel-0.2-ba-iteration-review.md', 'channel-0.2-bb-iteration-review.md', 'channel-0.2-bc-iteration-review.md', 'channel-0.2-bd-iteration-review.md', 'channel-0.2-be-iteration-review.md', 'channel-0.2-bf-iteration-review.md', 'channel-0.2-bg-iteration-review.md', 'channel-0.2-bh-iteration-review.md', 'channel-0.2-bi-iteration-review.md', 'channel-0.2-bj-iteration-review.md', 'channel-0.2-bk-iteration-review.md', 'channel-0.2-disposition-index.md')
+$expectedReviewNames = @('README.md', 'channel-0.2-design-foundation-attestation.md', 'channel-0.2-design-foundation-closure-attestation.md', 'channel-0.2-design-foundation-final-closure-attestation.md', 'channel-0.2-design-foundation-definitive-closure-attestation.md', 'channel-0.2-design-foundation-totality-closure-attestation.md', 'channel-0.2-design-foundation-closure-re-review-attestation.md', 'channel-0.2-design-foundation-closure-review-7-attestation.md', 'channel-0.2-design-foundation-closure-review-8-attestation.md', 'channel-0.2-design-foundation-closure-review-9-attestation.md', 'channel-0.2-design-foundation-closure-review-10-attestation.md', 'channel-0.2-design-foundation-closure-review-11-attestation.md', 'channel-0.2-design-foundation-closure-review-12-attestation.md', 'channel-0.2-design-foundation-closure-review-13-attestation.md', 'channel-0.2-design-foundation-closure-review-14-attestation.md', 'channel-0.2-design-foundation-closure-review-15-attestation.md', 'channel-0.2-design-foundation-closure-review-16-attestation.md', 'channel-0.2-design-foundation-closure-review-17-attestation.md', 'channel-0.2-u1-correction-iteration-review.md', 'channel-0.2-w-correction-iteration-review.md', 'channel-0.2-ac-correction-iteration-review.md', 'channel-0.2-ad-correction-iteration-review.md', 'channel-0.2-am-iteration-review.md', 'channel-0.2-an-iteration-review.md', 'channel-0.2-ao-iteration-review.md', 'channel-0.2-ap-iteration-review.md', 'channel-0.2-aq-iteration-review.md', 'channel-0.2-ar-iteration-review.md', 'channel-0.2-as-iteration-review.md', 'channel-0.2-at-iteration-review.md', 'channel-0.2-au-iteration-review.md', 'channel-0.2-av-iteration-review.md', 'channel-0.2-aw-iteration-review.md', 'channel-0.2-ax-iteration-review.md', 'channel-0.2-ay-iteration-review.md', 'channel-0.2-az-iteration-review.md', 'channel-0.2-ba-iteration-review.md', 'channel-0.2-bb-iteration-review.md', 'channel-0.2-bc-iteration-review.md', 'channel-0.2-bd-iteration-review.md', 'channel-0.2-be-iteration-review.md', 'channel-0.2-bf-iteration-review.md', 'channel-0.2-bg-iteration-review.md', 'channel-0.2-bh-iteration-review.md', 'channel-0.2-bi-iteration-review.md', 'channel-0.2-bj-iteration-review.md', 'channel-0.2-bk-iteration-review.md', 'channel-0.2-disposition-index.md')
 $actualReviewNames = @($reviewMarkdown.Name | Sort-Object)
 if (($actualReviewNames -join ',') -cne (($expectedReviewNames | Sort-Object) -join ',')) {
     $failures.Add('The Channel 0.2 design foundation must retain exactly the review README, every retained attestation, every retained iteration review, and the disposition index the status blocks point at, before the next closure review. The expected list above is the authority for which those are: a retained record added or removed without editing it is the mismatch this reports. It no longer states a tally, because the one it carried had been wrong by two since the AV pass.')
@@ -1242,6 +1311,21 @@ else {
     }
     elseif ($dispatchMarkerPresent) {
         $failures.Add("The verification foundation plan declares the closure cycle ``open`` while the review policy's step 4 still carries the do-not-dispatch marker. One of the two is stale, and the dispatching agent reads the one that says stop -- so a resumed cycle that leaves this marker standing is a hold nobody lifted.")
+    }
+    # BL6. The commit that lifted the hold changed the marker and one status block and left eight
+    # status blocks saying the re-review was "on hold", and the Channel index saying three of the four
+    # conditions were met. The state is read here; every surface that describes it is read against it,
+    # so the next change of state cannot reach some of its surfaces again.
+    if ($holdState -eq 'open') {
+        foreach ($holdStatusArtifact in $artifactNames) {
+            if ($holdStatusArtifact -eq 'README.md' -or $holdStatusArtifact -eq 'reviews\README.md') { continue }
+            if ((Get-FlowedText (Get-StatusBlock (Read-RequiredText $holdStatusArtifact))) -match '\bon hold\b') {
+                $failures.Add("'$holdStatusArtifact' says in its status block that the closure re-review is on hold, and the verification foundation plan declares the cycle ``open``. A status block describing a state the owning artifact no longer declares is what a reviewer reads first. This is BL6.")
+            }
+        }
+        if ((Get-FlowedText $channelReadme).IndexOf('Three of its four conditions are met', [System.StringComparison]::Ordinal) -ge 0) {
+            $failures.Add('The Channel index says three of the four conditions that end the hold are met, and the verification foundation plan declares the cycle `open`, which it is only when all four are. This is BL6.')
+        }
     }
 }
 
@@ -2747,8 +2831,24 @@ if ($pinnedCommit -and $pinnedCommit[0] -and -not $pendingDesignEdits) {
 
 # AI9: S3's evidence named the plan's section 7.8, which still reported seven retained negative
 # attestations. A retained finding was therefore open while every index said all findings were closed.
-if ($plan -match 'Seven independent negative attestations') {
-    $failures.Add('The redesign plan still reports seven retained negative attestations. S3''s own evidence named this passage, so a retained finding has been open while every entry point claimed the programme''s findings were all closed. This is AI9.')
+#
+# BL7: this matched the literal "Seven independent negative attestations", which is the defect
+# recognised by its own words -- AL1's and AL2's warning -- and the passage went on to say "Fifteen"
+# with sixteen retained, while the repository README said "five" through twelve cycles. Both counts
+# are recomputed now against the directory, whatever number they state.
+$bl7CountClaims = @(
+    @{ Where = "the redesign plan's section 7.8"; Text = Get-FlowedText $plan; Pattern = '([A-Za-z-]+) independent attestations are retained' },
+    @{ Where = 'the repository README'; Text = Get-FlowedText (Get-Content -Raw -LiteralPath (Join-Path $repositoryRoot 'README.md') -Encoding UTF8); Pattern = '([A-Za-z-]+) independent reviews are retained' })
+foreach ($bl7Claim in $bl7CountClaims) {
+    $bl7Match = [regex]::Match($bl7Claim.Text, $bl7Claim.Pattern)
+    if (-not $bl7Match.Success) {
+        $failures.Add("$($bl7Claim.Where) no longer states the retained review count in the form this check recomputes. S3's and AI9's evidence named that passage twice, and a count only prose carries is the one that goes stale.")
+        continue
+    }
+    $bl7Word = $bl7Match.Groups[1].Value.ToLowerInvariant()
+    if (-not $numberWords.ContainsKey($bl7Word) -or $numberWords[$bl7Word] -ne $attestationCount) {
+        $failures.Add("$($bl7Claim.Where) says '$bl7Word' independent reviews are retained and the reviews directory holds $attestationCount attestations. This is BL7, and S3's and AI9's before it.")
+    }
 }
 
 # The package's properties, counted from the artifacts that state them rather than from any sentence
@@ -2910,6 +3010,22 @@ foreach ($sessionProperty in $sessionMachineProperties) {
     if ($sessionPropertyText -notmatch $sessionQualifier) {
         $failures.Add("Property '$($sessionProperty.Groups[1].Value)' in the session state machine names no session. Every property of that machine is a statement about one session's own state, a vector may carry more than one session under AH1, and a property that leaves the session unnamed is read across the vector: `S3` counted the first drain transition that way and went red on a vector conforming in both of its sessions. This is AL1, and it is AE1's defect reached through the quantifier -- the same class as AK7 and AK8, over the properties whose per-session fact is the machine's own subject rather than a fact they name.")
     }
+    # BL3, one level finer. The machine runs once per local endpoint -- "moves the local session",
+    # "admitted locally" -- so naming the session is necessary and not sufficient: a property naming
+    # the session and not the endpoint reads the two endpoints' legal histories of one session as one,
+    # and `S2`, `S3` and `S4` were red that way on a conforming one-session vector recording both.
+    # AL1's evidence named the qualifier "locally" and its correction supplied "session". Required of
+    # every property of the machine, for the reason the check above requires the session of every one.
+    if ($sessionPropertyText -notmatch '\bendpoint\b') {
+        $failures.Add("Property '$($sessionProperty.Groups[1].Value)' in the session state machine names no endpoint. The machine runs once per local endpoint, so a property of it is a statement about one endpoint's local history of one session; naming the session alone reads the two endpoints' histories as one, which took `S2`, `S3` and `S4` red on a one-session vector conforming at both endpoints. This is BL3.")
+    }
+}
+$c2PropertyText = Get-FlowedText ([regex]::Match($contract, '(?s)\*\*Property C2-P1\.\*\*(.+?)\r?\n\r?\n').Groups[1].Value)
+if (-not $c2PropertyText) {
+    $failures.Add('The capability contract states no `C2-P1` this check can read. It is the session machine stated at capability level, and BL3 was raised against it as well as against `S2`-`S4`.')
+}
+elseif ($c2PropertyText -notmatch '\bendpoint\b') {
+    $failures.Add('`C2-P1` names no endpoint. It is the session machine stated at capability level, the machine runs once per local endpoint, and a statement over the session alone is red on a one-session vector conforming at both endpoints -- BL3, through the property the contract owns.')
 }
 
 # AL3. The declared list above is the AK7 recognizer's trigger set, and the AK pass derived it from
@@ -2991,8 +3107,16 @@ else {
     }
     foreach ($fact in $sessionScopedFacts) {
         if ($operandSection.IndexOf($fact, [System.StringComparison]::Ordinal) -lt 0) {
-            $failures.Add("The `C4-P1`/`C4-P2` operand enumeration has no row naming the per-session fact '$fact', which C12 declares and `C4-P1` or `C4-P2` reads.")
+            $failures.Add("The `C4-P1`/`C4-P2` operand enumeration has no row naming the per-session fact '$fact', which C12 declares. A fact neither property reads still has a row, and the row says so -- which is BL9.")
         }
+    }
+    # BL9. The row this loop required for `session state` credited `C4-P1` with reading it, which
+    # neither of that property's named clauses does, because the message above assumed every declared
+    # fact is read by one of the two. The properties that do read it are the session machine's, per
+    # endpoint since BL3, and the row names them.
+    $sessionStateRow = @($operandRows | Where-Object { $_.Groups[1].Value.IndexOf('`session state`', [System.StringComparison]::Ordinal) -ge 0 })
+    if ($sessionStateRow.Count -ne 1 -or $sessionStateRow[0].Value.IndexOf('neither `C4-P1` nor `C4-P2`', [System.StringComparison]::Ordinal) -lt 0) {
+        $failures.Add('The operand enumeration''s `session state` row does not say that neither `C4-P1` nor `C4-P2` reads it. Neither property''s clauses read a session state, and a row crediting one of them points the next audit at the wrong property -- the properties that read it are `S2`, `S3`, `S4` and `C2-P1`, where BL3 sat. This is BL9.')
     }
 }
 

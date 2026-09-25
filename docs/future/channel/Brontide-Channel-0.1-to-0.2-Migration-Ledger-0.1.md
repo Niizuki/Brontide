@@ -3,7 +3,7 @@
 Date: 2026-08-11
 
 Status: proposed first-batch migration disposition; awaiting a fresh independent
-closure re-review, on hold under the owner decision of 2026-08-17 recorded in the
+closure re-review, released on 2026-09-24 from the owner hold recorded in the
 [verification foundation plan](./Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md).
 Correction history is not carried here; it is owned by the
 [disposition index](./reviews/channel-0.2-disposition-index.md#01-to-02-migration-ledger).
@@ -273,6 +273,10 @@ The 0.1 set has no direct equivalents for these required 0.2 cases:
 - session fault mapping each in-flight interaction separately;
 - extension facet unable to redefine authority or terminality;
 - effect certainty separated from profile-owned effect details; and
+- session-control order, **BL2**: a close committed after an Outcome and a drain committed after a
+  request, each delivered in commit order and each delivered reordered under the declared reordering
+  injection, the reordered member being the one a receiver must never meet. Channel 0.1 promised no
+  order, so it has no predecessor vector either;
 - intra-interaction frame order and its two ordering mutations. Channel 0.1 promised no order and
   therefore has no predecessor vector, and this is the requirement every finding since S1 turns on, so
   its absence here would leave Batch 2's inventory silent about the one group it exists to produce:

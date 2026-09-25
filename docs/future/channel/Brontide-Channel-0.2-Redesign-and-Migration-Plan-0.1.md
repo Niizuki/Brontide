@@ -293,10 +293,12 @@ not derive expectations from one implementation's public API.
 ### 7.8 Fresh independent design review
 
 Review policy, retained attestations, and the exact continuation instructions:
-[`reviews/`](./reviews/README.md#exact-next-work). Fifteen independent attestations are retained —
-fourteen `does-not-conform` and one
+[`reviews/`](./reviews/README.md#exact-next-work). Seventeen independent attestations are retained —
+sixteen `does-not-conform` and one
 `conforms-with-nonblocking-findings`, which under the 2026-08-15 closure-standard ruling did not
-close the batch. This passage reported seven and stopped at the seventh review until **AI9**; it was
+close the batch. It said fifteen with sixteen retained until **BL7**, and the design verifier now
+recomputes the count rather than matching one stale value. This passage reported seven and stopped
+at the seventh review until **AI9**; it was
 S3's own evidence surface, so a retained finding stayed open for six cycles while every entry point
 reported the programme's findings closed. Their findings through T1-T4 and R1-R3 have correction passes, the last three confirmed
 closed by the seventh review at `3892c23a8dd4c7f298e877ba73710ee0ddc97bc4`. That review's blocking
@@ -638,3 +640,79 @@ still identify questions that require owners before closure.
   The consequence is recorded plainly: the twelfth review's verdict stands as issued and is retained
   unchanged; it did not close the batch, and its six findings are corrected in the commit that follows
   it.
+
+- **2026-09-25 — BL1 correction ruling, drains that cross:** each endpoint sends at most one drain
+  control, and drain is counted per endpoint. Closure review 17 found two endpoints that each legally
+  began drain before the other's control arrived each receiving the other's as a duplicate, faulting
+  the session with a `state-violation` accusing a peer that erred in nothing, and mapping every
+  in-flight interaction to `lost` -- the race-turned-fault shape R1 removed from the interaction
+  machine, reached on the session machine.
+
+  **Selected:** the peer's first drain control is legal in `draining` whichever endpoint drained first,
+  so crossing drains converge with no fault; only a second drain control from the same peer, or a
+  second local drain, faults. The session machine's drain protocol already said drain "occurs exactly
+  once per endpoint history", and the legal row had generalised D1's repeated-peer-drain trace to
+  "local or peer", which is what caught the crossing case.
+
+  **Rejected:** keeping the fault as a deliberate limit, qualifying C2's promise that drain lets
+  admitted work finish and reclassifying the fault away from `state-violation`. It would have kept the
+  machine smaller by one row, at the cost of two contradictory outcomes for identical conforming
+  behaviour selected by a timing neither endpoint observes, which the 2026-08-13 R1 ruling had already
+  refused on the interaction machine.
+
+- **2026-09-25 — BL2 correction ruling, what orders a session control:** Channel 0.2 core owns
+  **session-control order**: within one session, no frame an endpoint committed before a drain or close
+  is delivered after that control. Closure review 17 found C4's order binding one interaction only, so
+  a legal close overtook the Outcome its sender committed first and the receiver faulted the session
+  and lost the Outcome, and a drain overtook a request admitted before it and the receiver called the
+  request a violation; the session machine's close and drain rules silently assumed the order C4
+  declined to promise.
+
+  **Selected:** a session control is an ordering barrier for its own endpoint's earlier frames of that
+  session, stated in C4 beside intra-interaction frame order, owned by `channel` in the responsibility
+  matrix, declared by the realization profile and checked at establishment, and listed in the
+  ledger's new-evidence inventory. It is the S1 ruling's shape and its argument: the obligation is
+  small -- a realization over an unordered transport holds the control until its sender's earlier
+  frames are delivered -- and it is the order the design's own rules already relied on.
+
+  **Rejected:** session controls carrying a manifest of the frames committed before them, with the
+  receiver holding the control until those arrive. It adds no ordering promise, and it waits without
+  bound when one of those frames is lost, in a core with no timer -- the argument that decided S1
+  against holding at `unseen`. Also rejected: requiring an ordered transport of every profile that
+  allows drain or close, owned by `delivery-facet`, which moves an obligation the session machine
+  depends on out of the contract that states the machine.
+
+- **2026-09-25 — BL12 and BL5 rulings, the initiator's unopened identity and the frameless recipient
+  refusal:** the initiator mirrors the recipient's `unseen` rule, and the cost of a recipient-side
+  frameless refusal is stated as a limit rather than changed.
+
+  **Selected:** a well-formed frame naming an interaction identity the initiator never opened is
+  dropped with one local observation -- provenance `rejected-protocol`, detailed reason
+  `unopened-interaction-identity` -- no answering frame, and nothing retained, for the reason the R1
+  ruling gave the recipient: retaining a record for an identity a peer chose is unbounded state the peer
+  controls. For BL5, a recipient-side authority, phase or drain refusal after the request crossed
+  dispatch leaves the initiator `dispatched` with no terminal fact until an out-of-core timer or a
+  transport loss observation closes it as `lost` with `unknown` certainty, and a discarded held
+  cancellation leaves it in `cancel-pending` until then; the silence-probe table and the interaction
+  machine now say so and name the host timer as the owner.
+
+  **Rejected:** an interaction-scoped peer fault for the initiator's case, which accuses a peer whose
+  frame may simply have outlived the initiator's own record of the identity; and a new terminal
+  refusal frame the recipient would owe after dispatch, which is a protocol change behind a nonblocking
+  finding and would reopen the frame decisions the grid enumerates.
+
+- **2026-09-25 — BL10 ruling, which latches `C4-P2`'s second conjunct reads:** every late-traffic
+  `state-violation` latch, whatever its value. The contract states the conjunct over "a late-traffic
+  `state-violation` latched against a frame" and says the second witness is the settling frame "and not
+  the latch value"; the executable declaration selected `fault-committed` only, so a reordering hidden
+  behind a failed fault commit -- latch `fault-unavailable` -- was green in the gate and red by the
+  contract's words.
+
+  **Selected:** the executable conjunct selects both latch values, and a `fault-unavailable` form of
+  `C4-outcome-precedes-ack` joins the declared corpus as a named mutation, so the two readings are
+  distinguished by an input rather than by prose.
+
+  **Rejected:** keeping the gate's reading and stating the coverage limit beside AH6's. It is
+  defensible -- `fault-unavailable` records only a local observation -- but it would make the gate the
+  authority over the contract's own sentence, which is the direction this programme has refused since
+  W1.
