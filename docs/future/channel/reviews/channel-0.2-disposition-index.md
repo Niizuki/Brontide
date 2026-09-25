@@ -113,6 +113,15 @@ the vector. All four are corrected, and the two checks written for them are stru
 lexical: every property of the session state machine must name its session because that machine's
 properties are statements about one session by construction, and the sweep for the refusal record is
 keyed to the record rather than to the reference's name.
+The seventeenth review returned `does-not-conform` with blocking **BL1**-**BL3** and nonblocking
+**BL4**-**BL12**, the first review after the hold of 2026-08-17 to 2026-09-24. Its `C4-P2` evaluator
+agrees with all eleven declared verdicts; its three blocking findings are against the session machine
+run by two endpoints at different instants. **BL1** is two endpoints that each legally begin drain
+faulting the session, **BL2** a session control overtaking the same endpoint's earlier interaction
+frame, which C4's order does not cover, and **BL3** `S2`, `S3`, `S4` and `C2-P1` scoped per session
+while the machine runs per endpoint. **BL7**
+is this plan's own section 7.8 stating fifteen retained attestations where sixteen were. None is
+corrected yet.
 
 **As the Channel index recorded it.** Moved verbatim from that index's table row under W3; the row
 now points here.
