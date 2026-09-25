@@ -430,7 +430,10 @@ function Invoke-C4P2 {
         $category = Get-Field $latch 'category'
         $latchValue = Get-Field $latch 'latchValue'
         if ($null -ne $category -and [string]$category -ne 'state-violation') { continue }
-        if ($null -ne $latchValue -and [string]$latchValue -ne 'fault-committed') { continue }
+        # BL10: either settled value. The contract names the settling frame and "not the latch value" as
+        # the witness, so a reordering behind a failed fault commit is the same violation; reading
+        # `fault-committed` alone took that input green.
+        if ($null -ne $latchValue -and @('fault-committed', 'fault-unavailable') -notcontains [string]$latchValue) { continue }
 
         $settling = Get-Field $latch 'settlingFrame'
         $terminal = Get-Field $latch 'terminalFrame'

@@ -953,6 +953,108 @@
       }
     },
     {
+      "id": "C4-outcome-precedes-ack-fault-unavailable",
+      "capability": "C4",
+      "propertyMemberships": [
+        "C4-P2"
+      ],
+      "role": "named-mutation",
+      "summary": "C4-outcome-precedes-ack with the initiator unable to commit its late fault: the latch settles at `fault-unavailable` against the same settling and terminal frames. The contract states C4-P2's second conjunct over any late-traffic `state-violation` latched against a frame, and names the settling frame rather than the latch value as its witness, so the reordering is the same violation whether or not the fault commit succeeded. Until BL10 the executable conjunct selected `fault-committed` only and took this input green.",
+      "reorderingInjection": "declared: the recipient's two frames are delivered to the initiator in the reverse of the order the recipient committed them",
+      "sessions": [
+        {
+          "id": "s1",
+          "establishedProfile": "neutral-fixed-1",
+          "initialSessionState": "established"
+        }
+      ],
+      "declaredSteps": [
+        {
+          "id": "req",
+          "kind": "request",
+          "committingEndpoint": "initiator",
+          "session": "s1",
+          "interactionIdentity": "i1",
+          "commitIndex": 1
+        },
+        {
+          "id": "ack",
+          "kind": "cancellation-acknowledgement",
+          "committingEndpoint": "recipient",
+          "session": "s1",
+          "interactionIdentity": "i1",
+          "commitIndex": 1
+        },
+        {
+          "id": "out",
+          "kind": "outcome",
+          "committingEndpoint": "recipient",
+          "session": "s1",
+          "interactionIdentity": "i1",
+          "commitIndex": 2
+        }
+      ],
+      "delivery": [
+        {
+          "step": "req",
+          "disposition": "delivered",
+          "receivingEndpoint": "recipient",
+          "arrivalOrdinal": 1
+        },
+        {
+          "step": "out",
+          "disposition": "delivered",
+          "receivingEndpoint": "initiator",
+          "arrivalOrdinal": 1
+        },
+        {
+          "step": "ack",
+          "disposition": "delivered",
+          "receivingEndpoint": "initiator",
+          "arrivalOrdinal": 2
+        }
+      ],
+      "observations": {
+        "unseenRefusals": [],
+        "recipientAdmittedIdentities": [
+          {
+            "session": "s1",
+            "identities": [
+              "i1"
+            ]
+          }
+        ],
+        "lateTrafficLatches": [
+          {
+            "recordedBy": "initiator",
+            "session": "s1",
+            "interactionIdentity": "i1",
+            "category": "state-violation",
+            "latchValue": "fault-unavailable",
+            "settlingFrame": {
+              "kind": "cancellation-acknowledgement",
+              "session": "s1",
+              "interactionIdentity": "i1",
+              "committingEndpoint": "recipient",
+              "arrivalOrdinal": 2
+            },
+            "terminalFrame": {
+              "kind": "outcome",
+              "session": "s1",
+              "interactionIdentity": "i1",
+              "committingEndpoint": "recipient",
+              "arrivalOrdinal": 1
+            }
+          }
+        ]
+      },
+      "expected": {
+        "C4-P2": "red",
+        "conjunct": "C4-P2-conjunct-2"
+      },
+      "raisedBy": "BL10"
+    },
+    {
       "id": "S-conforming-single-session",
       "capability": "C2/C4",
       "propertyMemberships": [

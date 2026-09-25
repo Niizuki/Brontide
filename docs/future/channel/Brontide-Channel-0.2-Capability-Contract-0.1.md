@@ -593,7 +593,9 @@ group, is exactly the violation of. C10 states the fact and delegates the field 
 that publish it, as it does for the settling frame.
 
 **A recognized frame that opens no interaction yields one too.** A cancellation control or other
-control naming an identity the recipient has never accepted is neither an attempted establishment nor
+control naming an identity the recipient has never accepted -- and, at the initiator, a well-formed
+frame naming an identity it never opened, which it drops with this observation and no answering frame
+under the 2026-09-25 ruling on **BL12** -- is neither an attempted establishment nor
 an attempted interaction — under C4 no interaction exists there — and it is refused as a peer
 statement, so without this sentence the one record of that refusal would be required by C4 and by
 nothing that owns observation. The observation records the refusal, carrying

@@ -142,10 +142,20 @@
                   }
                 },
                 {
-                  "equals": {
-                    "field": "latchValue",
-                    "value": "fault-committed"
-                  }
+                  "any-of": [
+                    {
+                      "equals": {
+                        "field": "latchValue",
+                        "value": "fault-committed"
+                      }
+                    },
+                    {
+                      "equals": {
+                        "field": "latchValue",
+                        "value": "fault-unavailable"
+                      }
+                    }
+                  ]
                 }
               ]
             },
@@ -184,7 +194,8 @@
             "citations": [
               "The witness is the settling frame and not the latch value: fault-committed names no frame, and the mutation and the two cases the property must leave green all record it (contract, C4).",
               "The second operand is the terminal-frame reference rather than the terminal form, because a form identifies one frame only while an endpoint commits at most one frame of that form for one identity, and a duplicate terminal is an endpoint committing two (AK6).",
-              "Restricting the conjunct to one endpoint's own frames is load-bearing: a legal late control after a peer's terminal and a duplicate terminal from a nonconformant peer must both stay green."
+              "Restricting the conjunct to one endpoint's own frames is load-bearing: a legal late control after a peer's terminal and a duplicate terminal from a nonconformant peer must both stay green.",
+              "The latch is read at either settled value: the contract states the conjunct over a late-traffic state-violation latched against a frame and names the settling frame, not the latch value, as the witness, so a reordering behind a failed fault commit is the same violation (BL10, 2026-09-25 owner ruling)."
             ]
           }
         ]
@@ -201,6 +212,12 @@
           "conjunct": "C4-P2-conjunct-2",
           "expected": "red",
           "note": "A realization delivers the recipient's semantic Outcome before the cancellation acknowledgement the recipient committed first, so the acknowledgement lands on an interaction the Outcome has already made terminal. The expected observation contains one late-traffic state-violation whose latch records the displaced acknowledgement as the frame that settled it."
+        },
+        {
+          "vector": "C4-outcome-precedes-ack-fault-unavailable",
+          "conjunct": "C4-P2-conjunct-2",
+          "expected": "red",
+          "note": "BL10. The same reordering behind a failed fault commit: the conjunct reads every late-traffic state-violation latch, as the contract's statement does, so a latch at fault-unavailable is witnessed as one at fault-committed is."
         }
       ],
       "requiredGreen": [

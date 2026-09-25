@@ -325,7 +325,7 @@ Assert-ContainsAll 'Channel 0.2 cancellation admission race (C8)' (Get-FlowedTex
 # The interaction machine must carry the two recipient rows the rule needs.
 Assert-ContainsAll 'Channel 0.2 cancellation admission race (interaction machine)' $interaction @(
     '| `validating` | valid cancellation control for this admitted identity arrives | `validating` | no; hold exactly one control and apply it when admission resolves |',
-    '| `validating` | all checks pass, dispatch boundary is crossed, and one held cancellation control applies | `cancel-requested` or `cancel-refused` | yes; dispatch precedes the held control, which is then evaluated under local cancellation authority |'
+    '| `validating` | all checks pass, dispatch boundary is crossed, and one held cancellation control applies | `cancel-requested` or `cancel-refused` | yes; dispatch precedes the held control, which is then evaluated under local cancellation authority; emit the nonterminal `accepted` or `refused` acknowledgement that decision reaches |'
 )
 
 # R2: the two endpoint preconditions are two local states with no synchronising event between them.
@@ -817,6 +817,26 @@ $bl2Establishment = ($neutralBrief -split '## Version and establishment rule', 2
 if (-not $bl2Establishment -or (Get-FlowedText $bl2Establishment).IndexOf('session-control order', [System.StringComparison]::Ordinal) -lt 0) {
     $failures.Add('The neutral brief''s establishment rule does not carry the realization''s session-control order declaration, although the 2026-09-25 ruling makes it a profile obligation checked at establishment as per-interaction frame order is. This is BL2.')
 }
+# BL4: the recipient never emitted the `accepted` acknowledgement the initiator's machine consumes --
+# B2's defect, corrected for `refused` and left for `accepted`. Both producing rows and the grid cell
+# that enumerates them carry the emission.
+Assert-ContainsAll 'Channel 0.2 accepted cancellation acknowledgement (interaction machine, BL4)' $interaction @(
+    '| `executing` | valid cancellation control arrives | `cancel-requested` | possible/already occurred; emit nonterminal `accepted` acknowledgement |',
+    'emit the nonterminal `accepted` or `refused` acknowledgement that decision reaches'
+)
+Assert-ContainsAll 'Channel 0.2 accepted cancellation acknowledgement (grid, BL4)' $stateEventCoverage @('`cancel-requested`, emit `accepted` acknowledgement')
+
+# BL12, under the 2026-09-25 ruling: the initiator's frame naming an identity it never opened has a
+# route, an observation and a retention rule, as the recipient's `unseen` case does, and C10 -- which
+# owns observation -- names it.
+Assert-ContainsAll 'Channel 0.2 initiator unopened identity (interaction machine, BL12)' (Get-FlowedText $interaction) @('frame naming an identity the initiator never opened')
+Assert-ContainsAll 'Channel 0.2 initiator unopened identity (C10, BL12)' $flowedContract @('at the initiator, a well-formed frame naming an identity it never opened')
+
+# BL5, under the same ruling: a recipient-side refusal after dispatch is frameless, and its cost to the
+# initiator is stated where silence is recorded rather than left unowned.
+Assert-ContainsAll 'Channel 0.2 frameless recipient refusal (completeness review, BL5)' (Get-FlowedText $completeness) @('recipient-side frameless refusal after the request crossed dispatch')
+Assert-ContainsAll 'Channel 0.2 frameless recipient refusal (interaction machine, BL5)' (Get-FlowedText $interaction) @('A recipient-side refusal after dispatch is frameless')
+
 $bl2LedgerEvidence = ($migration -split '## New evidence required by redesign', 2)[1] -split '## Golden encodings, parity profiles, and pins', 2 | Select-Object -First 1
 if (-not $bl2LedgerEvidence -or (Get-FlowedText $bl2LedgerEvidence).IndexOf('session-control order', [System.StringComparison]::Ordinal) -lt 0) {
     $failures.Add('The migration ledger''s new-evidence inventory does not list session-control order, a 0.2 obligation with no 0.1 predecessor to carry it in by another route. This is BL2.')
