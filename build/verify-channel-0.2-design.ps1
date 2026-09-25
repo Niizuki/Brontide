@@ -2910,6 +2910,22 @@ foreach ($sessionProperty in $sessionMachineProperties) {
     if ($sessionPropertyText -notmatch $sessionQualifier) {
         $failures.Add("Property '$($sessionProperty.Groups[1].Value)' in the session state machine names no session. Every property of that machine is a statement about one session's own state, a vector may carry more than one session under AH1, and a property that leaves the session unnamed is read across the vector: `S3` counted the first drain transition that way and went red on a vector conforming in both of its sessions. This is AL1, and it is AE1's defect reached through the quantifier -- the same class as AK7 and AK8, over the properties whose per-session fact is the machine's own subject rather than a fact they name.")
     }
+    # BL3, one level finer. The machine runs once per local endpoint -- "moves the local session",
+    # "admitted locally" -- so naming the session is necessary and not sufficient: a property naming
+    # the session and not the endpoint reads the two endpoints' legal histories of one session as one,
+    # and `S2`, `S3` and `S4` were red that way on a conforming one-session vector recording both.
+    # AL1's evidence named the qualifier "locally" and its correction supplied "session". Required of
+    # every property of the machine, for the reason the check above requires the session of every one.
+    if ($sessionPropertyText -notmatch '\bendpoint\b') {
+        $failures.Add("Property '$($sessionProperty.Groups[1].Value)' in the session state machine names no endpoint. The machine runs once per local endpoint, so a property of it is a statement about one endpoint's local history of one session; naming the session alone reads the two endpoints' histories as one, which took `S2`, `S3` and `S4` red on a one-session vector conforming at both endpoints. This is BL3.")
+    }
+}
+$c2PropertyText = Get-FlowedText ([regex]::Match($contract, '(?s)\*\*Property C2-P1\.\*\*(.+?)\r?\n\r?\n').Groups[1].Value)
+if (-not $c2PropertyText) {
+    $failures.Add('The capability contract states no `C2-P1` this check can read. It is the session machine stated at capability level, and BL3 was raised against it as well as against `S2`-`S4`.')
+}
+elseif ($c2PropertyText -notmatch '\bendpoint\b') {
+    $failures.Add('`C2-P1` names no endpoint. It is the session machine stated at capability level, the machine runs once per local endpoint, and a statement over the session alone is red on a one-session vector conforming at both endpoints -- BL3, through the property the contract owns.')
 }
 
 # AL3. The declared list above is the AK7 recognizer's trigger set, and the AK pass derived it from

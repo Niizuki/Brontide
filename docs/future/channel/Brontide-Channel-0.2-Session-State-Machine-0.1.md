@@ -149,25 +149,32 @@ does not mutate the external state.
 
 ## Capability-wide properties
 
-Each of these is a statement about **one session**, and each says so. A vector may carry more than one
-session under AH1, so a property of this machine that leaves the session unnamed is read across the
-vector: that is **AL1**, and it made `S3` red on a vector whose two sessions both conform.
+Each of these is a statement about **one endpoint's local history of one session**, and each says so.
+A vector may carry more than one session under AH1, so a property of this machine that leaves the
+session unnamed is read across the vector: that is **AL1**, and it made `S3` red on a vector whose two
+sessions both conform. The machine also runs once per local endpoint -- the drain protocol moves "the
+local session" and forbids admission "locally" -- so a property that names the session and not the
+endpoint reads the two endpoints' legal histories of one session as one history: that is **BL3**, and
+it made `S2`, `S3` and `S4` red on a one-session vector conforming at both endpoints.
 
-- **S1.** In each session the vector carries, every accepted transition of that session is in the
-  legal table.
-- **S2.** No interaction dispatches outside its own session's `established` state.
-- **S3.** Within each session the vector carries, no new interaction is admitted after that session's
-  first drain transition. The scope is the whole of this property: the drain transition belongs to one
-  session, and a second session establishing and admitting afterwards is legal.
-- **S4.** Within each session the vector carries, a terminal session never becomes nonterminal and is
-  never resumed under the same session identity.
-- **S5.** For each session the vector carries, fixed and negotiated establishment of that session's
-  own declared profile produce equal normative profile records. The comparison is between the two
+- **S1.** In each endpoint's local history of each session the vector carries, every accepted
+  transition of that session is in the legal table.
+- **S2.** No interaction dispatches outside the `established` state of its own session at the endpoint
+  that dispatches it.
+- **S3.** Within each endpoint's local history of each session the vector carries, no new interaction
+  is admitted after that endpoint's first drain transition of that session. The scope is the whole of
+  this property: the drain transition belongs to one endpoint's history of one session, so a second
+  session establishing and admitting afterwards is legal, and so is the peer admitting before its own
+  drain transition while this endpoint has already drained.
+- **S4.** Within each endpoint's local history of each session the vector carries, a terminal session
+  never becomes nonterminal and is never resumed under the same session identity.
+- **S5.** For each session the vector carries, at each endpoint, fixed and negotiated establishment of
+  that session's own declared profile produce equal normative profile records. The comparison is between the two
   paths to **one** declared profile, which is what the fixed and negotiated equivalence section above
   states; two sessions carrying two different declared profiles are conforming and this property says
   nothing about them. That qualifier is **AL4**, and it is the `AK8` correction `C1-P1` received.
-- **S6.** In any session the vector carries, no session event creates Ready, Release, authority, or an
-  application Outcome.
+- **S6.** In any endpoint's local history of any session the vector carries, no session event creates
+  Ready, Release, authority, or an application Outcome.
 
 Each property receives a generated model test in both stacks and a named negative probe in the
 neutral verifier before implementation closure.

@@ -228,7 +228,10 @@ Every vector contains:
   inside the correction written to close AG2. It also
   keeps the sequence honest about what it is — a record of what each side committed, not a global
   order, which Channel does not have;
-- expected accepted/refused transitions;
+- expected accepted/refused transitions, each naming the **endpoint** whose local history of the
+  session it belongs to, as every admission and dispatch does. The session machine runs once per
+  local endpoint, and a transition naming only its session merges the two endpoints' histories into
+  one, which **BL3** found the executable timeline doing;
 - expected frame decision and peer/local provenance;
 - expected terminal history and effect certainty;
 - expected sibling-interaction effects for concurrency vectors;

@@ -106,9 +106,9 @@ own effect certainty.
 **Named scenarios.** `C2-drain-refuses-new`, `C2-drain-preserves-in-flight`,
 `C2-ready-is-not-session-state`, and `C2-late-control-after-close`.
 
-**Property C2-P1.** Every accepted session transition belongs to the published transition table;
-every other input leaves the prior state unchanged or enters `faulted`, and no terminal session
-returns to a nonterminal state.
+**Property C2-P1.** In each endpoint's local history of a session, every accepted session transition
+belongs to the published transition table; every other input leaves the prior state unchanged or
+enters `faulted`, and no terminal session returns to a nonterminal state.
 
 **Evidence.** Transition-table properties in both stacks; every legal edge and representative
 illegal edge through a real process; fixed-profile transition evidence.
@@ -704,7 +704,12 @@ means rather than counting or comparing it across the vector:
   visible, which is AF6 one level up. It is not decorative: `S3` bounded admission by "the first drain
   transition" with no session named, and read across a vector that carries two sessions the property
   is red on a second session legally establishing and admitting after the first one drains. That is
-  **AL1**, and no pattern built from the four members above could have matched it.
+  **AL1**, and no pattern built from the four members above could have matched it. The state is also
+  **each endpoint's own**: the session machine runs once per local endpoint, so the two endpoints of
+  one session hold two local histories of it, which may legitimately disagree at any instant -- one
+  already `draining` while the other still admits under `established`. A property reading session
+  state reads one endpoint's history of one session; read over the session alone it is red on
+  conforming behaviour, which is **BL3**.
 
 This is the same rule as the two above and it is stated for the same reason. AH1 gave the declared
 stimulus step its session, AI1 and AJ1 gave the settling-frame reference its session across every

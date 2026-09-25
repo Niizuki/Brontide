@@ -2212,9 +2212,9 @@
       "edits": [
         {
           "path": "conformance/channel-0.2-property-vectors.json",
-          "find": "          \"to\": \"draining\",\n          \"event\": \"begin-drain\",\n          \"accepted\": true\n        },\n        {\n          \"session\": \"s1\",\n          \"step\": \"admit\",\n          \"identity\": \"i2\"",
+          "find": "          \"to\": \"draining\",\n          \"event\": \"begin-drain\",\n          \"accepted\": true\n        },\n        {\n          \"session\": \"s1\",\n          \"endpoint\": \"initiator\",\n          \"step\": \"admit\",\n          \"identity\": \"i2\"",
           "occurrence": 0,
-          "replace": "          \"to\": \"established\",\n          \"event\": \"begin-drain\",\n          \"accepted\": true\n        },\n        {\n          \"session\": \"s1\",\n          \"step\": \"admit\",\n          \"identity\": \"i2\""
+          "replace": "          \"to\": \"established\",\n          \"event\": \"begin-drain\",\n          \"accepted\": true\n        },\n        {\n          \"session\": \"s1\",\n          \"endpoint\": \"initiator\",\n          \"step\": \"admit\",\n          \"identity\": \"i2\""
         }
       ],
       "gateArguments": [
