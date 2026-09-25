@@ -45,7 +45,7 @@ one route.
 | `unestablished` | fixed validation or proposal path | `state-violation` | `state-violation` | `state-violation` | `faulted` when a peer frame is attributable | `faulted` |
 | `establishing` | exact acceptance/refusal; any second or mismatched control faults | `state-violation` | `state-violation` | `state-violation` | `faulted` | `faulted` |
 | `established` | mutation/second establishment faults | interaction machine | first drain → `draining` | premature close → `faulted` | `faulted` | `faulted` |
-| `draining` | `state-violation` | local refusal or named peer-interaction rule | duplicate drain → `faulted` | empty set → `closed`; otherwise `faulted` | `faulted` unless the named peer-interaction row is nonfatal | `faulted` |
+| `draining` | `state-violation` | local refusal or named peer-interaction rule | peer's first drain → remains `draining`, the crossing case; a second drain from the same peer → `faulted` | empty set → `closed`; otherwise `faulted` | `faulted` unless the named peer-interaction row is nonfatal | `faulted` |
 | `closed` | terminal late input | terminal late input | terminal late input | terminal late input | terminal late input | remains `closed`; local observation only |
 | `faulted` | terminal late input | terminal late input | terminal late input | terminal late input | terminal late input | remains `faulted`; local observation only |
 

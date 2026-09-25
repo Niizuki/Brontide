@@ -69,7 +69,8 @@ and never advances it.
 | `establishing` | local validation or peer establishment refusal | `closed` | refusal provenance and `known-none` |
 | `unestablished` | local fixed validation refuses | `closed` | frameless local refusal and `known-none` |
 | `established` | local or peer drain begins | `draining` | drain initiator and current in-flight set |
-| `draining` | duplicate local or peer drain control | `faulted` | session-scoped `state-violation`; preserve the original drain snapshot and all interaction effect evidence |
+| `draining` | the peer's first drain control, received after this endpoint's own drain began | `draining` | no fault: the two drains crossed, the local drain snapshot stands, and the peer's drain is recorded beside it |
+| `draining` | a second drain control from the same peer, or a second local drain | `faulted` | session-scoped `state-violation`; preserve the original drain snapshot and all interaction effect evidence |
 | `draining` | all admitted interactions terminal and close is sent/received | `closed` | orderly close and empty in-flight set |
 | any nonterminal | fatal recognized Channel violation | `faulted` | peer fault or local violation provenance; each interaction records its own certainty |
 | any nonterminal | transport/process loss prevents continuation | `faulted` | local loss category/detection point; each interaction records its own certainty |
@@ -96,13 +97,25 @@ state.
 Drain is symmetric but its control occurs exactly once per endpoint history:
 
 1. the first accepted local or peer drain moves the local session to `draining`;
-2. a subsequent local or peer drain control is a session-scoped `state-violation` and moves the
-   session to `faulted`; the first drain snapshot and every interaction's effect evidence remain;
+2. each endpoint sends at most one drain control, so the peer's first drain control is legal in
+   `draining` whichever endpoint drained first: two drains that cross leave both endpoints `draining`
+   with no fault. A second drain control from the same peer, or a second local drain, is a
+   session-scoped `state-violation` and moves the session to `faulted`; the first drain snapshot and
+   every interaction's effect evidence remain. Counting drain per endpoint is **BL1**: counted per
+   session, two conforming endpoints that each began drain before the other's control arrived each
+   faulted the session and destroyed the admitted work drain exists to let finish;
 3. no new interaction may be admitted locally after the first drain transition;
 4. interactions already admitted continue under the interaction state machine;
 5. close is legal only when the local in-flight set is empty; and
 6. a peer close with locally nonterminal interactions is a protocol fault, not proof those
    interactions produced no effects.
+
+Items 5 and 6, and the refused row for a new peer interaction during drain, rely on
+**session-control order**, which C4 states: within one session, no frame an endpoint committed before
+a session control is delivered after that control. A close carries no interaction identity, so
+without it a legal close could overtake the Outcome its sender committed first, and the receiver would
+fault a session neither endpoint mishandled; a drain could overtake a request admitted before it, and
+the receiver would call that request a violation. Stating the order these rules assumed is **BL2**.
 
 Channel does not promise that an unresponsive peer will cooperate with drain. Timeout or transport
 loss faults the session and closes each nonterminal interaction through a local loss observation.

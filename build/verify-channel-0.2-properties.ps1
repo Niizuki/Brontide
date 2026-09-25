@@ -496,6 +496,9 @@ $legalSessionTransitions = @(
     'unestablished>established', 'unestablished>establishing', 'unestablished>closed',
     'establishing>established', 'establishing>closed',
     'established>draining', 'draining>faulted', 'draining>closed',
+    # BL1: the peer's first drain control received while this endpoint is already draining leaves it
+    # draining. The row is a self-loop so that the dispatch table stays closed over that input.
+    'draining>draining',
     # The machine's two `any nonterminal` rows -- a fatal recognized Channel violation and a
     # transport/process loss -- expanded over the nonterminal states. They were missing until AO1,
     # and `draining>faulted` was here only because a concrete row states that one as well, so `S1`

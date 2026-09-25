@@ -62,7 +62,7 @@ in it, and a new owner is added here before it is used in a row.
 | Application/Component contract identity | `application-profile` | Channel interaction admission → profile | exact canonical contract reference | Channel core |
 | Endpoint roles and allowed directions | `channel-profile` | Channel session/interaction → profile | role and interaction-class declarations | process topology |
 | Fixed/negotiated profile equivalence | `channel` | profile realizations → Channel | immutable established-profile record | negotiation codec |
-| Wire encoding and frame mechanics | `realization-profile` | Channel → realization declaration | encoding id, framing id, finite bounds, per-interaction frame order declaration | Channel logical contract |
+| Wire encoding and frame mechanics | `realization-profile` | Channel → realization declaration | encoding id, framing id, finite bounds, per-interaction frame order and session-control order declarations | Channel logical contract |
 | Session establishment/drain/close/fault | `channel` | profiles and hosts → Channel state machine | session control declarations/observations | Composition, Portable Binding |
 | Interconnection | `portable-binding` | Channel class admission → explicit phase predicate | activation member/binding phase observation | Channel session, Component Management |
 | Relational Initialisation phase | `composition` | Portable Binding and Channel admission → composition phase | exact lifecycle declaration and current phase | Channel session, Component Management |
@@ -92,6 +92,7 @@ in it, and a new owner is added here before it is used in a row.
 | Retry attempt policy | `retry-profile` | Channel admits each attempt independently | new interaction id plus optional causal prior reference | reuse/replay of one id |
 | Delivery, persistence, cross-interaction ordering | `delivery-facet` | Channel profile may require facet → extension | exact extension facet/version | Channel core |
 | Intra-interaction frame order | `channel` | realization declares conformance → profile verifies at establishment | per-interaction frame order declaration in the realization profile | `delivery-facet`, transport |
+| Session-control order | `channel` | realization declares conformance → profile verifies at establishment | session-control order declaration in the realization profile | `delivery-facet`, transport |
 | Streaming and backpressure | `flow-facet` | Channel profile may add interaction class/facet → Flow | stream identity subordinate to interaction, terminal bridge | unary core reinterpretation |
 | Long-running activity | `lifecycle` | Channel Outcome may identify/start activity under exact extension | activity reference and lifecycle facet | keeping interaction forever nonterminal |
 | Timing constraints | `realtime-facet` | Channel observes declared timing facts → Realtime | explicit timing facet and clock provenance | ambient Channel clock |

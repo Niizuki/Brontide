@@ -97,10 +97,12 @@ session states. A profile may use those external facts as exact interaction guar
 **Authority and effect boundary.** A session transition never authorizes an Operation. Closing or
 faulting a session does not imply that an in-flight provider effect was undone.
 
-**Failure and uncertainty.** Illegal or duplicate control is a protocol fault. In particular, a
-second local or peer drain moves `draining` to `faulted`, records one session-scoped
-`state-violation`, preserves the first drain snapshot, and does not rewrite any interaction's effect
-certainty. Peer loss faults the local session and leaves each nonterminal interaction to record its
+**Failure and uncertainty.** Illegal or duplicate control is a protocol fault. Drain is counted per
+endpoint: each endpoint sends at most one drain control, so the peer's first drain control is legal in
+`draining` whichever endpoint drained first, and two drains that cross converge with no fault. A
+second drain control from the same peer, or a second local drain, moves `draining` to `faulted`,
+records one session-scoped `state-violation`, preserves the first drain snapshot, and does not rewrite
+any interaction's effect certainty. Peer loss faults the local session and leaves each nonterminal interaction to record its
 own effect certainty.
 
 **Named scenarios.** `C2-drain-refuses-new`, `C2-drain-preserves-in-flight`,
@@ -158,12 +160,23 @@ controls, and observations name the exact interaction. Reusing an accepted inter
 the same session is replay and never dispatches the handler again.
 
 No cross-interaction completion order is promised. Within one session, for one interaction identity,
-frames sent by one endpoint are delivered in the order that endpoint committed them. This is the
-whole of the ordering Channel 0.2 core promises, and it is what lets a recipient distinguish a
-cancellation control that races its own admission from a control naming an identity it has never
-been asked to open. The obligation binds one direction of one interaction, where an initiator commits
-at most a request and one cancellation control, so a realization over an unordered transport
-satisfies it by sequencing those frames rather than by building a general reordering buffer. Within
+frames sent by one endpoint are delivered in the order that endpoint committed them. It is what lets
+a recipient distinguish a cancellation control that races its own admission from a control naming an
+identity it has never been asked to open. The obligation binds one direction of one interaction, where
+an initiator commits at most a request and one cancellation control, so a realization over an
+unordered transport satisfies it by sequencing those frames rather than by building a general
+reordering buffer.
+
+Core promises one ordering fact more, **session-control order**: within one session, no frame an
+endpoint committed before a session control is delivered after that control, a session control being
+a drain or a close. A session control names no interaction, so the intra-interaction order does not
+reach it, and the session machine's close and drain rules assume exactly this order: without it a
+legal close overtakes the Outcome its sender committed first and the receiver faults the session, and
+a drain overtakes a request admitted before it and the receiver calls the request a violation. It
+binds a session control behind its own endpoint's earlier frames of that session and nothing else, so
+a realization over an unordered transport satisfies it by holding the control until those frames are
+delivered. The two are the whole of the ordering Channel 0.2 core promises. Session-control order is
+**BL2**, stated under the owner ruling of 2026-09-25. Within
 one interaction, accepted events follow the interaction state machine. A new session has a new
 identity and cannot resume or inherit the replay window of an old session unless a later extension
 defines a distinct resumption contract.
@@ -362,12 +375,13 @@ stays green is a finding against the property rather than evidence for the desig
 
 **Evidence.** Model-based state tests and generated interleavings in both stacks; neutral peer with
 out-of-order outcomes; replay and mismatch process vectors; and a realization-profile declaration of
-per-interaction frame order that a profile checks at establishment.
+per-interaction frame order and of session-control order that a profile checks at establishment.
 
 **Silence.** C4 promises neither fairness nor relative scheduling, cross-interaction or cross-session
-ordering, durable deduplication, or exactly-once effects. The intra-interaction frame order stated
-above is the whole of what it promises about order: nothing here constrains how a realization
-interleaves distinct interactions, and no ordering survives a session boundary.
+ordering, durable deduplication, or exactly-once effects. The intra-interaction frame order and the
+session-control order stated above are the whole of what it promises about order: nothing here
+constrains how a realization interleaves distinct interactions' frames with each other, and no ordering
+survives a session boundary.
 
 ## C5 — payload compatibility and bounds are positional and pre-effect
 
@@ -638,8 +652,8 @@ the Channel core forms unless a future Channel version explicitly changes them.
 Retries are new attempts with new interaction identities and optional attributable causation to the
 prior attempt. Reusing one interaction identity is replay, not retry. Channel core promises no retry,
 durable delivery, cross-interaction ordering, persistence, resumption, or exactly-once effect. The
-single ordering fact core does own is C4's intra-interaction frame order; a facet may add delivery
-and ordering guarantees beyond it but may not weaken it.
+ordering facts core does own are C4's intra-interaction frame order and session-control order; a facet
+may add delivery and ordering guarantees beyond them but may not weaken either.
 
 **Authority and effect boundary.** An extension declaration grants nothing and cannot broaden C6.
 

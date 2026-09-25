@@ -249,8 +249,10 @@ Assert-ContainsAll 'Channel 0.2 live replay and recipient provenance paths' $int
     '| initiator `peer-fault` / recipient `peer-fault` / recipient `rejected-protocol` | no | yes | receipt/commit also observed locally |',
     '| initiator or recipient `lost` | no | no | yes |'
 )
+# D1's result, as BL1 scoped it: a duplicate drain is a second one from the same endpoint, and the
+# peer's first drain after this endpoint drained is the crossing case, which converges.
 Assert-ContainsAll 'Channel 0.2 duplicate drain result' $session @(
-    '| `draining` | duplicate local or peer drain control | `faulted` | session-scoped `state-violation`; preserve the original drain snapshot and all interaction effect evidence |'
+    '| `draining` | a second drain control from the same peer, or a second local drain | `faulted` | session-scoped `state-violation`; preserve the original drain snapshot and all interaction effect evidence |'
 )
 Assert-ContainsAll 'Channel 0.2 cancellation acknowledgement totality' $interaction @(
     '| `cancel-accepted` | no | Peer accepted the one cancellation request; the interaction still awaits a terminal fact. |',
@@ -772,6 +774,53 @@ Assert-ContainsAll 'Channel 0.2 held control under loss (interaction machine)' $
     '| `validating` | local session or transport loss, with or without a held cancellation control | `lost` | no; any held control is discarded with no answering frame and the late-traffic latch does not fire |',
     '| `validating` | drain refuses this still-admitting interaction, with or without a held cancellation control | `refused-local` | no; an interaction whose admission has not resolved is outside the drain snapshot, and any held control is discarded with no answering frame |'
 )
+
+# BL1, under the owner ruling of 2026-09-25: drain is counted per endpoint. Two endpoints that each
+# legally begin drain before the other's control arrives each received the other's as a "duplicate"
+# and faulted the session, destroying the admitted work drain exists to let finish and accusing a peer
+# that erred in nothing -- R1's race-turned-fault on the session machine. Each endpoint sends at most
+# one drain control, so the peer's first is legal whichever side drained first; only a second from
+# the same peer faults. Every artifact that states the duplicate rule states it that way, and none
+# keeps the "local or peer" form the crossing case fell through.
+$bl1Session = Get-FlowedText $session
+$bl1Coverage = Get-FlowedText $stateEventCoverage
+Assert-ContainsAll 'Channel 0.2 crossing drains (session machine, BL1)' $bl1Session @("the peer's first drain control", 'second drain control from the same peer')
+Assert-ContainsAll 'Channel 0.2 crossing drains (C2, BL1)' $flowedContract @("the peer's first drain control", 'second drain control from the same peer')
+Assert-ContainsAll 'Channel 0.2 crossing drains (grid, BL1)' $bl1Coverage @("peer's first drain")
+foreach ($bl1Stale in @(
+        @{ Where = 'the session machine'; Text = $bl1Session; Phrase = 'a subsequent local or peer drain control is a session-scoped' },
+        @{ Where = 'the session machine'; Text = $bl1Session; Phrase = 'duplicate local or peer drain control' },
+        @{ Where = 'C2'; Text = $flowedContract; Phrase = 'second local or peer drain moves `draining` to `faulted`' })) {
+    if ($bl1Stale.Text.IndexOf($bl1Stale.Phrase, [System.StringComparison]::Ordinal) -ge 0) {
+        $failures.Add("$($bl1Stale.Where) still states '$($bl1Stale.Phrase)'. Read literally it faults on the peer's first drain control whenever this endpoint drained first, which is two conforming endpoints crossing their drains and each accusing the other. Drain is counted per endpoint under the 2026-09-25 ruling. This is BL1.")
+    }
+}
+
+# BL2, under the owner ruling of 2026-09-25: a session control is an ordering barrier for the frames
+# its own endpoint committed before it. C4's order binds one interaction only, so a legal close
+# overtook the Outcome it followed and a drain overtook a request admitted before it, and the session
+# machine's close and drain rules silently assumed the order C4 declined to promise. The obligation is
+# S1's shape again -- stated in C4, owned by `channel` in the matrix, declared by the profile, carried
+# by the ledger's new-evidence inventory -- and C4 no longer calls intra-interaction order the whole of
+# what core promises.
+$bl2Barrier = 'no frame an endpoint committed before a session control'
+Assert-ContainsAll 'Channel 0.2 session-control order (C4, BL2)' $flowedContract @($bl2Barrier)
+Assert-ContainsAll 'Channel 0.2 session-control order (session machine, BL2)' $bl1Session @('session-control order')
+if ($flowedContract.IndexOf('This is the whole of the ordering Channel 0.2 core promises', [System.StringComparison]::Ordinal) -ge 0) {
+    $failures.Add('C4 still calls intra-interaction frame order "the whole of the ordering Channel 0.2 core promises". Under the 2026-09-25 ruling a session control is also an ordering barrier for its endpoint''s earlier frames, and a sentence denying it is the one a realization reads to decide it may reorder a close ahead of an Outcome. This is BL2.')
+}
+$bl2OwnerRow = @($responsibility -split "`r?`n" | Where-Object { $_ -match '^\| Session-control order \|' })
+if ($bl2OwnerRow.Count -ne 1 -or $bl2OwnerRow[0] -notmatch '^\| Session-control order \| `channel` \|') {
+    $failures.Add('The responsibility matrix carries no `Session-control order` row owned by `channel`. The barrier is a Channel core obligation under the 2026-09-25 ruling, and a fact the matrix gives no owner is the S1 shape the ordering row was added to end. This is BL2.')
+}
+$bl2Establishment = ($neutralBrief -split '## Version and establishment rule', 2)[1] -split '## Message-schema separation', 2 | Select-Object -First 1
+if (-not $bl2Establishment -or (Get-FlowedText $bl2Establishment).IndexOf('session-control order', [System.StringComparison]::Ordinal) -lt 0) {
+    $failures.Add('The neutral brief''s establishment rule does not carry the realization''s session-control order declaration, although the 2026-09-25 ruling makes it a profile obligation checked at establishment as per-interaction frame order is. This is BL2.')
+}
+$bl2LedgerEvidence = ($migration -split '## New evidence required by redesign', 2)[1] -split '## Golden encodings, parity profiles, and pins', 2 | Select-Object -First 1
+if (-not $bl2LedgerEvidence -or (Get-FlowedText $bl2LedgerEvidence).IndexOf('session-control order', [System.StringComparison]::Ordinal) -lt 0) {
+    $failures.Add('The migration ledger''s new-evidence inventory does not list session-control order, a 0.2 obligation with no 0.1 predecessor to carry it in by another route. This is BL2.')
+}
 
 Assert-ContainsAll 'Channel 0.2 responsibility matrix' $responsibility @(
     'Channel contract version',

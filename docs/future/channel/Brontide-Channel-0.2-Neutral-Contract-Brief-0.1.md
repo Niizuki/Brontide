@@ -125,7 +125,11 @@ declaration the artifact crossing the boundary from the realization, and C4's ev
 profile to check it at establishment — so `established-profile.json` gives it a normative position and
 a realization that does not declare it refuses establishment exactly as an unknown required facet
 does. It is a realization fact, not an extension facet: a profile with no facets at all still has it,
-because core promises the ordering rather than a `delivery-facet` supplying it.
+because core promises the ordering rather than a `delivery-facet` supplying it. The image carries the
+realization's **session-control order** declaration beside it, for the same reasons: C4 promises that
+no frame an endpoint committed before a drain or close is delivered after that control, the
+responsibility matrix owns that under `channel`, and a realization that does not declare it refuses
+establishment. That declaration is **BL2**.
 
 Unknown required facets or any version mismatch refuse before interaction dispatch. Optional facets
 may be absent only when their declaration states that absence changes no core identity, authority,
