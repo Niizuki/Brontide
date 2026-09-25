@@ -1106,11 +1106,14 @@ artifact reads it; a reviewer checking what a finding *was* reads the attestatio
   that lifted the hold and **BL11** in the twenty-fourth and twenty-fifth passes' generator, both work
   of the session that dispatched it. Its dispatch is disclosed below.
 
-The current review target is the commit titled `docs(channel): lift the closure-review hold by owner
-ruling of 2026-09-24`, committed 2026-09-24, which is the head of the correction sequence beginning at
-`fix(channel): make C4-P2 falsifiable`. It moves the pin off `verification: give I5 the two
-terminal-operand mutations its inputs never exercised (BI1)` because lifting the hold reaches a design
-artifact -- the redesign plan's status line, which named the hold as what the closure re-review was
+The current review target is the commit titled `docs(channel): disposition the BL family in the
+completeness review and the indexes`, committed 2026-09-25, which is the head of the correction sequence
+beginning at `fix(channel): make C4-P2 falsifiable`. It moves the pin off `docs(channel): lift the
+closure-review hold by owner ruling of 2026-09-24` because the BL corrections reach every design
+artifact -- closure review 17's twelve findings, four of them under owner rulings of 2026-09-25 -- and
+that commit is the last of the correction to touch one. Before that the pin sat on the commit that
+lifted the hold, which moved it off `verification: give I5 the two terminal-operand mutations its
+inputs never exercised (BI1)` because lifting the hold reaches a design artifact -- the redesign plan's status line, which named the hold as what the closure re-review was
 waiting under -- and no design fact changes with it. Before that the pin sat on the twenty-third pass's
 commit, which moved it off `verification: count the twentieth pass's first-run fields as stated 285
 times rather than on 148 records` because that pass's **BI1** correction reaches a design artifact -- the
