@@ -31,7 +31,7 @@ agrees and its review has no blocking finding.
 
 The [first-batch design package](./channel/README.md) now includes C1-C12, both state machines, a
 closed state/event grid, the responsibility matrix, silence review, migration ledger, neutral-
-artifact brief, four resolved owner rulings, and 17 retained independent reviews. Every finding
+artifact brief, four resolved owner rulings, and 18 retained independent reviews. Every finding
 through S1-S3 is closed in the artifact it was raised against, each re-verified individually by the
 eighth review, which then raised blocking **U1** and nonblocking **U2**-**U8**. Those are corrected,
 as are **V1**-**V3**, **W1**-**W6**, **X1**-**X7**, **Y1**-**Y4**, and **Z1**-**Z4**, raised by
@@ -608,6 +608,17 @@ while the machine runs per endpoint. **BL6** is in the commit that lifted the ho
 twenty-fourth and twenty-fifth passes built, both the work of the session that dispatched the review.
 The attestation is retained unmodified, and all twelve BL findings are corrected, four of them under
 owner rulings of 2026-09-25 recorded in the redesign plan.
+
+The eighteenth closure review returned `does-not-conform` with blocking **BM1**-**BM3** and
+nonblocking **BM4**-**BM7**. It found each BL correction closing the trace the seventeenth wrote and
+not what that trace depended on. It built a two-endpoint model whose transport enforces both ordering
+promises. In that model, **BM1** is a recipient's frameless refusal after dispatch, followed by the
+recipient's legal orderly close, faulting the initiator's session against a conforming peer, with no
+race needed. **BM2** is an endpoint's first local drain after the peer's drain has moved it to
+`draining`, which the session machine routes to `faulted` and the grid to an unchanged state. **BM3**
+is the vector format still stating one initial state per session, so a conforming window that opens
+while the two endpoints disagree cannot be declared. The review was dispatched by a session with no
+prior involvement. The attestation is retained unmodified, and the BM findings are not yet corrected.
 
 **An owner ruling of 2026-08-20 came out of recording that family.** AM is the first raised against the
 verification work rather than the design, and putting it in the completeness review's disposition
@@ -2191,7 +2202,7 @@ and 16 create follow-on work tracked in that file.
 | Area | Planning source | Current implementation state |
 | --- | --- | --- |
 | Architecture 0.8 | [current implemented copy](../current/architecture/Brontide-Architecture-0.8.md) and [pinned pre-implementation snapshot](./architecture/Brontide-Architecture-0.8.md) | Complete Draft implementation evidence available; not ratified. |
-| Channel | [`Channel 0.2 redesign package`](./channel/README.md), retained [`Channel 0.1 Design Note`](./channel/Brontide-Design-Note-Channel-0.1.md), [`Draft Channel Contract 0.1`](./channel/Brontide-Draft-Channel-Contract-0.1.md), and [requirements ledger](./channel/architecture-0.8-channel-requirements-and-risk-ledger.md) | Channel 0.1 has complete experimental realization evidence; the 0.2 first-batch design package is complete with four resolved owner rulings and 17 retained independent reviews, has correction passes through U1-U8 and the author-side V1-V3, W1-W6, X1-X7, Y1-Y4, Z1-Z4, AA1-AA3, AB1-AB2, AC1-AC4, AD1-AD3, AE1-AE5, AF1-AF8, AG1-AG5, AH1-AH6, AI1-AI9, AJ1-AJ7, AK1-AK8, AL1-AL4, AR1, AS1-AS7, AT1-AT7, AU1-AU5, AV1-AV3, AW1, AX1-AX3, AZ1-AZ2, BA1-BA7, BB1-BB7, BC1-BC3, BD1-BD3, BE1-BE5, BF1-BF12, BI1-BI3 and BL1-BL12 families; the closure cycle resumed by owner decision after the twenty-fifth verification-foundation pass met condition 4, and it still awaits a fresh independent closure re-review before implementation. |
+| Channel | [`Channel 0.2 redesign package`](./channel/README.md), retained [`Channel 0.1 Design Note`](./channel/Brontide-Design-Note-Channel-0.1.md), [`Draft Channel Contract 0.1`](./channel/Brontide-Draft-Channel-Contract-0.1.md), and [requirements ledger](./channel/architecture-0.8-channel-requirements-and-risk-ledger.md) | Channel 0.1 has complete experimental realization evidence; the 0.2 first-batch design package is complete with four resolved owner rulings and 18 retained independent reviews, has correction passes through U1-U8 and the author-side V1-V3, W1-W6, X1-X7, Y1-Y4, Z1-Z4, AA1-AA3, AB1-AB2, AC1-AC4, AD1-AD3, AE1-AE5, AF1-AF8, AG1-AG5, AH1-AH6, AI1-AI9, AJ1-AJ7, AK1-AK8, AL1-AL4, AR1, AS1-AS7, AT1-AT7, AU1-AU5, AV1-AV3, AW1, AX1-AX3, AZ1-AZ2, BA1-BA7, BB1-BB7, BC1-BC3, BD1-BD3, BE1-BE5, BF1-BF12, BI1-BI3 and BL1-BL12 families; the closure cycle resumed by owner decision after the twenty-fifth verification-foundation pass met condition 4, and it still awaits a fresh independent closure re-review before implementation. |
 | Component Management | [design note](./component-management/Brontide-Design-Note-Component-Management-0.1.md) and [`implementation plan`](./component-management/Brontide-Component-Management-Implementation-Plan-0.1.md) | CM0-CM6 are implemented independently in both stacks; the complete fake programme is retained here because of transitive evidence pins. Real distribution and production integration remain future work. |
 | Composition | [`Composition Design Note`](./composition/Brontide-Design-Note-Composition-0.1.md) and [Composition Without a Kernel](./architecture/Brontide-Architecture-Composition-Without-a-Kernel.md) | Experimental composition evidence exists; the proposed architecture is not ratified. |
 | Enrichment | [`Enrichment Design Note`](./enrichment/Brontide-Design-Note-Enrichment-0.1.md) | Targeted experimental evidence exists; the wider design remains work in progress. |

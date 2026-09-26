@@ -171,6 +171,7 @@ dependency instead of narrowing it.
 | AK | closure-review | design | closure review 15 attestation (AK1-AK4); AK5-AK8 raised by the AK correction pass and recorded in the completeness review's operand enumeration |
 | AL | closure-review | design | closure review 16 attestation |
 | BL | closure-review | design | closure review 17 attestation |
+| BM | closure-review | design | closure review 18 attestation |
 | AM | iteration | verification | W1-W3 verification-foundation iteration review |
 | AN | iteration | verification | second W1-W3 verification-foundation iteration review |
 | AO | iteration | verification | third W1-W3 verification-foundation iteration review |
@@ -1106,6 +1107,24 @@ artifact reads it; a reviewer checking what a finding *was* reads the attestatio
   that lifted the hold and **BL11** in the twenty-fourth and twenty-fifth passes' generator, both work
   of the session that dispatched it. Its dispatch is disclosed below.
 
+- [Closure review 18](./channel-0.2-design-foundation-closure-review-18-attestation.md) — reviewed
+  `f4921fcf7ac5cc2242991e3271fb1e95993851eb`, whose design artifacts hash identically to the pinned
+  target; `does-not-conform`; blocking **BM1**, **BM2** and **BM3** with nonblocking **BM4**-**BM7**.
+  **Its isolation is complete**, with the disclosures it makes itself: its session began with this
+  repository's `AGENTS.md`, a git-status snapshot and the titles of three memory entries in context,
+  it opened no memory entry, and it ran nothing against the author's working repository. It found
+  each BL correction closing the trace closure review 17 wrote and not what that trace depended on,
+  using a two-endpoint model whose transport enforces both ordering promises. **BM1** is a recipient's
+  frameless refusal after dispatch, followed by that recipient's legal orderly close, faulting the
+  initiator's session against a conforming peer. This happens with no race at all, and through
+  `validating` it brings back BL2's second trace without any reordering. **BM2** is this endpoint's
+  first local drain after the peer's drain has already moved it to `draining`: the session machine
+  routes that pair to `faulted` and the grid routes it to an unchanged state. **BM3** is the vector
+  format still stating one initial state per session, so a conforming window that opens while the two
+  endpoints disagree cannot be declared. On one of the two ways of stating it, `S2` and `C2-P1` are red
+  in the repository's own evaluator. It did not rebuild a `C4-P2` evaluator, and it read C5, C7 and C11
+  without probing them. Its dispatch is disclosed below.
+
 The current review target is the commit titled `docs(channel): disposition the BL family in the
 completeness review and the indexes`, committed 2026-09-25, which is the head of the correction sequence
 beginning at `fix(channel): make C4-P2 falsifiable`. It moves the pin off `docs(channel): lift the
@@ -1748,4 +1767,43 @@ arrangement did not soften the review; it is not proof.
 
 The independence requirement on the next cycle is unchanged and now stricter by one name: its reviewer
 must differ from all seventeen retained reviewers, from every correction author, and from this
+dispatching session.
+
+## Disclosed dispatch provenance of closure review 18
+
+Closure review 18 was dispatched by a session with **no prior involvement in this work**. It authored
+none of the corrections, no condition-4 pass, no artifact in the design package, no check in any gate,
+no retained review and no previous dispatch. It was a fresh session: the repository owner asked it to
+implement the next item in the future-work index, and that item is this review. The owner chose
+dispatching a subagent over the two alternatives the session put to them: writing a brief for a new
+conversation they would start themselves, or having the dispatching session review inline. The
+dispatching session had said the third option was weaker, because its context already held the
+material listed below.
+
+Before dispatching, that session read `AGENTS.md`, the Priority 1 section of the future-work index, and
+parts of this policy: the status block, "Two kinds of review", the required scope and verdicts,
+"Closure", parts of "Exact next work", and the dispatch provenance of reviews 16 and 17. It also read
+the header of the review 17 attestation and the owner's memory notes from an earlier session about how
+the gates are run. It cloned the public remote into a scratch directory rather than its own working
+repository and detached the clone at `origin/main`. There it ran the design gate, which passed, and
+checked that the diff from the pinned commit touches only the guard-probe corpus, the verification
+foundation plan and this policy. It gave the reviewer those facts with an instruction to re-verify
+them rather than accept them. Its brief named no artifact defect and no area of suspicion, disclosed
+everything above, and pointed the reviewer at `AGENTS.md` and this policy for scope, verdicts and
+output. It gave five instructions, each restating a standing requirement: verify the pin, falsify
+rather than read, re-derive retained findings from their evidence, follow propagation, and review the
+architecture the status registry selects. It told the reviewer to run the self-modifying gate scripts
+only in a separate throwaway clone, not to open the author's working repository or any memory entry,
+to write only the attestation, and to commit nothing. The run was not interrupted.
+
+This is review 16's arrangement, and review 16's caution applies to it. A dispatcher with no stake has
+no demonstrated incentive it failed to act on, so the arrangement offers no evidence of the kind reviews
+10 through 15 and 17 could point at. What is available is narrower: the brief conveyed no defect and no
+suspicion, and the reviewer itemises what the brief narrowed in its attestation. That itemisation
+credits the method behind its two blocking model findings to closure review 17's retained closing
+advice, "build the second endpoint", rather than to the brief. The same session then retained the
+attestation and wrote this record. It corrected none of **BM1**-**BM7**.
+
+The independence requirement on the next cycle is unchanged and now stricter by one name: its reviewer
+must differ from all eighteen retained reviewers, from every correction author, and from this
 dispatching session.

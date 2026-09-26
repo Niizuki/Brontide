@@ -123,6 +123,13 @@ while the machine runs per endpoint. **BL7**
 is this plan's own section 7.8 stating fifteen retained attestations where sixteen were, corrected with
 the count now recomputed by the design verifier; the plan's resolved questions carry the four
 2026-09-25 owner rulings the BL corrections rest on.
+The eighteenth review returned `does-not-conform` with blocking **BM1**-**BM3** and nonblocking
+**BM4**-**BM7**, each in what a BL correction depended on rather than in its trace. **BM1** is a
+recipient's frameless refusal followed by its legal close faulting the initiator's session against a
+conforming peer, which refutes the consequence the 2026-09-25 BL5 ruling states. **BM2** is an
+endpoint's first local drain once the peer's drain has moved it to `draining`, with the session machine
+and the grid routing it differently. **BM3** is the vector format's one initial state per session.
+This plan's section 7.8 now understates the retained attestations by one again. None is corrected yet.
 
 **As the Channel index recorded it.** Moved verbatim from that index's table row under W3; the row
 now points here.
