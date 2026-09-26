@@ -79,6 +79,14 @@ corrected, four under owner rulings of 2026-09-25 -- drain counted per endpoint,
 ordering barriers, the initiator's unopened identity mirroring the recipient's, and `C4-P2` reading
 every settled latch.
 
+The eighteenth closure review returned `does-not-conform` with blocking **BM1**-**BM3** and
+nonblocking **BM4**-**BM7**, all found in what a BL correction depended on rather than in its trace:
+**BM1** is a recipient's frameless refusal followed by its legal close faulting the initiator's
+session against a conforming peer, **BM2** an endpoint's first local drain once the peer's drain has
+moved it to `draining`, routed to `faulted` by the session machine and to an unchanged state by the
+grid, and **BM3** the vector format's one initial state per session. The attestation is retained
+unmodified; the BM findings are not yet corrected.
+
 ## Channel 0.2 design foundation
 
 Every artifact below awaits the same cycle: one fresh independent closure re-review, now of the
@@ -116,7 +124,7 @@ operand at once instead of one at a time. See the
 | [Contract-completeness review](./Brontide-Channel-0.2-Contract-Completeness-Review-0.1.md) | Separate review of silence and extension pressure | See the [disposition index](./reviews/channel-0.2-disposition-index.md#contract-completeness-review). |
 | [0.1-to-0.2 migration ledger](./Brontide-Channel-0.1-to-0.2-Migration-Ledger-0.1.md) | Disposition of predecessor Shapes, fields, states, categories, limits, observations, vectors, and goldens | See the [disposition index](./reviews/channel-0.2-disposition-index.md#01-to-02-migration-ledger). |
 | [Neutral contract/vector brief](./Brontide-Channel-0.2-Neutral-Contract-Brief-0.1.md) | Batch 2 data-only artifact, identity, property, vector, observation, and golden boundaries | See the [disposition index](./reviews/channel-0.2-disposition-index.md#neutral-contract-and-vector-brief). |
-| [Design reviews](./reviews/README.md) | Fresh-context review policy and retained attestations | 17 retained attestations, one `conforms-with-nonblocking-findings`; 29 iteration reviews: V, W, X, Y, Z, AA, AB, AC, AD, AM, AN, AO, AP, AQ, AR, AS, AT, AU, AV, AW, AX, AY, AZ, BA, BB, BC, BD, BE, BF, BG, BH, BI, BJ, BK. [Dispositions](./reviews/channel-0.2-disposition-index.md#design-reviews). |
+| [Design reviews](./reviews/README.md) | Fresh-context review policy and retained attestations | 18 retained attestations, one `conforms-with-nonblocking-findings`; 29 iteration reviews: V, W, X, Y, Z, AA, AB, AC, AD, AM, AN, AO, AP, AQ, AR, AS, AT, AU, AV, AW, AX, AY, AZ, BA, BB, BC, BD, BE, BF, BG, BH, BI, BJ, BK. [Dispositions](./reviews/channel-0.2-disposition-index.md#design-reviews). |
 | [Verification foundation plan](./Brontide-Channel-0.2-Verification-Foundation-Plan-0.1.md) | Why closure has not converged, and the work that has to exist before another review is spent | Not a design artifact and assessed by no closure review. See the [disposition index](./reviews/channel-0.2-disposition-index.md#verification-foundation-plan). |
 
 No Channel 0.2 schema, public type, package, host, provider, or encoding is authorized while a fresh
